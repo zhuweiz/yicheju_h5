@@ -1,0 +1,139 @@
+
+.app_ye{
+    height: 50px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    overflow: hidden;
+    border-bottom: 3px solid #f6f6f6;
+    font-size: 14px;
+    background: #fff;
+}
+/* .van-popup{
+    z-index: 99;
+} */
+.van-popup--top{
+    position: absolute;
+    z-index: 9999;
+    top: 50px
+}
+.list{
+    margin-top: 53px;
+}
+.mian{
+    padding-bottom: .133333rem;
+    border-bottom: 3px solid #f6f6f6;
+}
+.van-ellipsis{
+    font-size: 14px;
+}
+ .van-icon::before{
+    vertical-align: middle;
+    /* font-size: 0.34rem; */
+    padding: 0 0.08rem 0.15rem 0;
+}
+[class*=van-hairline]::after{
+    border: none;
+}
+.ye{
+    height: 50px;
+    line-height: 50px;
+    /* color: #323233; */
+}
+.riqi{
+    height: 50px;
+    line-height: 50px;
+    overflow: hidden;
+    margin-right: 1.8rem;
+}
+.riqi div{
+    display: inline-block;
+}
+.ye_l{
+    margin-left: .8rem;
+}
+.ye_r{
+    margin-right: .8rem;
+}
+.list_a{
+    overflow: hidden;
+    height: 2.4rem;
+    border-bottom: 1px solid #fafafa;
+    font-size: 12px;
+}
+.list_a div{
+    line-height: 2.4rem;
+}
+.phone{
+    margin-left: 1.6rem;
+}
+.shu{
+    overflow: hidden;
+    height: 100%;
+    margin-left: .8rem;
+}
+.yue{
+    margin-left: 2.666667rem;
+}
+.show{
+    /* position: fixed;
+    top: 50px;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border:  2px solid #f9f9f9; */
+    /* width: 6rem; */
+    /* margin-left: 65px; */
+    z-index: 2006;
+    position: fixed;
+    animation-duration: 0.2s;
+    top: 52px;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+.showList{
+  
+    /* height: 2.7rem;
+    line-height: 2.7rem;
+    margin-left: .8rem;
+    font-size: 14px;*/
+    border-bottom:  1px solid #e3e4e2; 
+    position: relative;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 16px;
+    overflow: hidden;
+    color: #323233;
+    font-size: 14px;
+    line-height: 24px;
+    background-color: #fff;
+}
+
+table{
+    font-size: 12px;
+    width: 100%;;
+    overflow: hidden;
+    border-collapse:collapse;border:none;
+}
+tr{
+    overflow: hidden;
+    height: 2.5rem;
+}
+th{
+    font-weight:300; 
+    font-size: 12px;
+    width: 20%;
+    text-align: center; 
+    border-bottom: 1px solid #f6f6f6;
+}
+td{
+    border-bottom: 1px solid #f6f6f6;
+    width: 20%;
+    text-align: center; 
+}

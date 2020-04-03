@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>修理厂业务管理</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.1/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.1/lib/vant.min.js"></script>
+    <script src="./js/area.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/manage.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="xiuli">
+            <div class="app_ye">
+                <div class="left ye ye_l">业务员：</div>
+                <!-- <van-dropdown-menu :overlay="false" class="left">
+                <van-dropdown-item class="f-14" v-model="value1" :options="option1" />
+            </van-dropdown-menu> -->
+                <div class="ye left" @click.stop="ShowHidden = !ShowHidden">{{text}}
+                    <van-icon name="arrow-down" />
+                </div>
+
+                <div class="right ye ye_r">共 <span class="c2A9F58">15</span> 家</div>
+            </div>
+            <div v-show="ShowHidden" class="show" @click.stop="ShowHidden = !ShowHidden">
+                <div class="showList" @click.stop="shouclick(item.text)" v-for="item in option1" :key="item.index">
+                    {{item.text}}</div>
+            </div>
+
+
+            <div class="list">
+                <div class="mian">
+                    <div class="list_a">
+                        <div class="c2A9F58 left ye_l">东莞迅捷汽车修理厂</div>
+                        <div class="right ye_r">业务员：黄雪</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">
+
+                            <van-icon name="contact" size="12" />张三</div>
+                        <div class="left phone">
+                            <van-icon name="phone-o" size="12" />15963254761</div>
+                        <div class="right ye_r">
+                            <van-icon name="notes-o" size="12" />2020-02-04</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">今日：15</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="left shu">￥ 2345.00</div>
+                        <div class="left yue">本月：345</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="right ye_r">￥ 245577.00
+                            <van-icon name="arrow" />
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mian">
+                    <div class="list_a">
+                        <div class="c2A9F58 left ye_l">东莞迅捷汽车修理厂</div>
+                        <div class="right ye_r">业务员：黄雪</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">
+
+                            <van-icon name="contact" size="12" />张三</div>
+                        <div class="left phone">
+                            <van-icon name="phone-o" size="12" />15963254761</div>
+                        <div class="right ye_r">
+                            <van-icon name="notes-o" size="12" />2020-02-04</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">今日：15</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="left shu">￥ 2345.00</div>
+                        <div class="left yue">本月：345</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="right ye_r">￥ 245577.00
+                            <van-icon name="arrow" />
+                        </div>
+
+                    </div>
+                </div>
+                <div class="mian">
+                    <div class="list_a">
+                        <div class="c2A9F58 left ye_l">东莞迅捷汽车修理厂</div>
+                        <div class="right ye_r">业务员：黄雪</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">
+
+                            <van-icon name="contact" size="12" />张三</div>
+                        <div class="left phone">
+                            <van-icon name="phone-o" size="12" />15963254761</div>
+                        <div class="right ye_r">
+                            <van-icon name="notes-o" size="12" />2020-02-04</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">今日：15</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="left shu">￥ 2345.00</div>
+                        <div class="left yue">本月：345</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="right ye_r">￥ 245577.00
+                            <van-icon name="arrow" />
+                        </div>
+
+                    </div>
+                </div>
+                <div class="mian">
+                    <div class="list_a">
+                        <div class="c2A9F58 left ye_l">东莞迅捷汽车修理厂</div>
+                        <div class="right ye_r">业务员：黄雪</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">
+
+                            <van-icon name="contact" size="12" />张三</div>
+                        <div class="left phone">
+                            <van-icon name="phone-o" size="12" />15963254761</div>
+                        <div class="right ye_r">
+                            <van-icon name="notes-o" size="12" />2020-02-04</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">今日：15</div>
+                        <div class="left c2A9F58 shu">|</div>
+                        <div class="left shu">￥ 2345.00</div>
+                        <div class="left yue">本月：345</div>
+                        <div class="left c2A9F58 shu">|</div>
+                        <div class="right ye_r">￥ 245577.00
+                            <van-icon name="arrow" />
+                        </div>
+
+                    </div>
+                </div>
+                <div class="mian">
+                    <div class="list_a">
+                        <div class="c2A9F58 left ye_l">东莞迅捷汽车修理厂</div>
+                        <div class="right ye_r">业务员：黄雪</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">
+
+                            <van-icon name="contact" size="12" />张三</div>
+                        <div class="left phone">
+                            <van-icon name="phone-o" size="12" />15963254761</div>
+                        <div class="right ye_r">
+                            <van-icon name="notes-o" size="12" />2020-02-04</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">今日：15</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="left shu">￥ 2345.00</div>
+                        <div class="left yue">本月：345</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="right ye_r">￥ 245577.00
+                            <van-icon name="arrow" />
+                        </div>
+
+                    </div>
+                </div>
+                <div class="mian">
+                    <div class="list_a">
+                        <div class="c2A9F58 left ye_l">东莞迅捷汽车修理厂</div>
+                        <div class="right ye_r">业务员：黄雪</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">
+
+                            <van-icon name="contact" size="12" />张三</div>
+                        <div class="left phone">
+                            <van-icon name="phone-o" size="12" />15963254761</div>
+                        <div class="right ye_r">
+                            <van-icon name="notes-o" size="12" />2020-02-04</div>
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">今日：15</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="left shu">￥ 2345.00</div>
+                        <div class="left yue">本月：345</div>
+                        <p class="left c2A9F58 shu">|</p>
+                        <div class="right ye_r">￥ 245577.00
+                            <van-icon name="arrow" />
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+</body>
+<script>
+    const baseURL = "http://47.99.212.29:8888"
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                option1: [
+                    { text: '黄雪', value: 0 },
+                    { text: '李飞', value: 1 },
+                    { text: '老黄', value: 2 }
+                ],
+                text: '黄雪',
+                value1: 0,
+                ShowHidden: false,
+                areaStatus: false,//地理位置
+                salesman: false,//业务员
+                business: [],
+                facade: [],
+                disabled: false
+            }
+        },
+        methods: {
+            shouclick(text) {
+                console.log(text)
+                this.ShowHidden = false;
+                this.text = text
+            }
+        }
+    })
+</script>
+
+</html>

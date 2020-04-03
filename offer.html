@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<title>报价</title>
+		<!-- 公共库 -->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.4.6/lib/index.css">
+		<script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.4.6/lib/vant.min.js"></script>
+    <script src="https://cdn.bootcss.com/moment.js/2.24.0/moment.min.js"></script>
+		<link rel="stylesheet" href="css/baseStyle.css" />
+		<link rel="stylesheet" href="css/style.css" />
+	</head>
+
+	<body>
+		<style>
+			.sumit{
+				width: 100%;
+				padding: 10px;
+				bottom: 0;
+      }
+      .tops{
+        background: #0d906e;
+        padding: 10px;
+      }
+      .tops div{
+        color: #fff;
+        font-size:13px;
+        padding-top:2px;
+      }
+      .cards{
+        margin: 10px;
+      }
+      .cards .contents{
+        background: #fff;
+        border-radius: 5px;
+        padding: 10px;
+      }
+      .contents div {
+        color: #000;
+        line-height: 30px;
+      }
+		</style>
+		<div id="app" style="background: #eee;height: 100vh;overflow: auto;">
+      <div class="tops">
+        <van-row>
+          <van-col span="24">询价方：{{data.garageName}}</van-col>
+        </van-row>
+        <van-row>
+          <van-col span="24">下单时间：{{data.createdDate}}</van-col>
+        </van-row>
+        <van-row>
+          <van-col span="24">电话：{{data.garagePhone}}</van-col>
+        </van-row>
+        <van-row type="flex" justify="space-around">
+          <van-col span="12">
+            <van-row>
+              <van-col span="24">车牌号：{{data.carNo}}</van-col>
+              <van-col span="24">车型：{{data.carModel}}</van-col>
+              <van-col span="24">车架号：{{data.carVin}}</van-col>
+              <van-col span="24">客户备注：{{data.remark}}</van-col>
+            </van-row>
+          </van-col>
+          <van-col span="12" style="text-align:center;">
+            <van-image :src="data.carPicUrl" :width="100" :height="100" @click="showImagePreview"></van-image><br>
+            <span>共{{data.partPictures ? data.partPictures.length : 0}}张</span>
+          </van-col>
+        </van-row>
+      </div>
+
+      <div v-if="data.status != 0">
+        <van-tabs swipeable title-active-color="#0d906e" color="#0d906e">
+          <van-tab v-for="(item, index) in partList" :key="index" :title="item.name">
+            <div style="background: #eee;overflow: auto;">
+              <div class="cards">
+                <van-row type="flex" justify="space-around" align="center" class="contents">
+                  <van-col span="12">
+                    <van-row>
+                      <van-col span="24">配件名称：{{item.name}}</van-col>
+                      <van-col span="24">拟够数量：{{item.data.length}}</van-col>
+                    </van-row>
+                  </van-col>
+                  <van-col span="12" style="text-align:center;">
+                    <van-image :src="item.data[0].partPicUrl" :width="100" :height="100" @click="showImagePreviews(item.data[0].partPicUrl)"></van-image><br>
+                    <span>共{{item.data[0].partPictures ? item.data[0].partPictures.length : 1}}张</span>
+                  </van-col>
+                </van-row>
+              </div>
+              <div class="cards" v-for="(part, i) in item.data" :key="index">
+                <h3>{{partType[part.partType]}}</h3>
+                <van-row class="contents">
+                  <van-col span="24">
+                    规格型号：{{part.model}} {{part.talkStatus}}
+                  </van-col>
+                  <div v-if="part.talkStatus == 0 || !part.talkStatus || part.talkStatus == 3">
+                    <van-col span="12">
+                      单价：<font color="red">{{part.price}}</font>
+                    </van-col>
+                  </div>
+
+                  <div v-else-if="part.talkStatus == 1">
+                    <van-col span="12">
+                      单价：<font color="red">{{part.talkPrice}}</font><del>{{part.price}}</del>
+                    </van-col>
+                    <van-col span="12" style="text-align:right;">
+                      <van-button type="danger" size="small" @click="talkPrice(part.id, 2, part.talkPrice)">同意议价</van-button>
+                    </van-col>
+                  </div>
+                  
+                  <div v-else-if="part.talkStatus == 2">
+                    <van-col span="12">
+                      单价：<font color="red">{{part.price}}</font><del>{{part.oldPrice}}</del>
+                    </van-col>
+                    <van-col span="12" style="text-align:right;">
+                      <font color="red">已议价</font>
+                    </van-col>
+                  </div>
+                  
+                  <van-col span="12">
+                    保质期：{{part.qualityTime}}
+                  </van-col>
+                  <van-col span="12">
+                    到货期：{{part.arrivalTime}}
+                  </van-col>
+                  <van-col span="24">
+                    备注：{{part.remark}}
+                  </van-col>
+                </van-row>
+              </div>
+            </div>
+          </van-tab>
+        </van-tabs>
+      </div>
+
+      <div v-if="data.status == 0">
+        <van-tabs swipeable title-active-color="#0d906e" color="#0d906e">
+          <van-tab v-for="(item, index) in partList" :key="index" :title="item.name">
+            <div style="background: #eee;overflow: auto;">
+              <div class="cards">
+                <van-row type="flex" justify="space-around" align="center" class="contents">
+                  <van-col span="12">
+                    <van-row>
+                      <van-col span="24">配件名称：{{item.name}}</van-col>
+                      <van-col span="24">拟够数量：{{item.data.length}}</van-col>
+                    </van-row>
+                  </van-col>
+                  <van-col span="12" style="text-align:center;">
+                    <van-image :src="item.data[0].partPicUrl" :width="100" :height="100" @click="showImagePreviews(item.data[0].partPicUrl)"></van-image><br>
+                    <span>共{{item.data[0].partPictures ? item.data[0].partPictures.length : 1}}张</span>
+                  </van-col>
+                </van-row>
+              </div>
+              <div class="cards" v-for="(part, i) in item.data" :key="index">
+                <h3>{{partType[part.partType]}}</h3>
+                <van-row class="contents">
+                  <van-col span="24">
+                    <van-field v-model="part.mode" label="规格型号：" />
+                  </van-col>
+                  <van-col span="24">
+                    <van-field v-model="part.price" type="number" label="单价：" />
+                  </van-col>
+                  <van-col span="24">
+                    <van-field v-model="part.qualityTime" label="保质期：" placeholder="例：1月，1年，无" />
+                  </van-col>
+                  <van-col span="24">
+                    <van-field v-model="part.arrivalTime" label="到货期：" readonly @click="dateDig(index,i)" />
+                  </van-col>
+                  <van-col span="24">
+                    <van-field v-model="part.remark" label="备注：" />
+                  </van-col>
+                </van-row>
+              </div>
+            </div>
+          </van-tab>
+        </van-tabs>
+      </div>
+      <van-popup v-model="areaStatus" position="bottom" @closed="areaStatus = false">
+        <van-datetime-picker
+          v-model="rowDate"
+          type="date"
+          :minDate="minDate"
+          @confirm="dateChange"
+        />
+      </van-popup>
+			<div class="sumit">
+        <van-button type="primary" size="large" v-if="data.status == 0" @click="offerPrice">提交</van-button>
+        <van-button type="default" size="large" disabled v-if="data.status == 1 || data.status == 2">已提交</van-button>
+			</div>
+			
+		</div>
+	</body>
+	<script>
+    function groupBy(array, name) {
+      const groups = {}
+      array.forEach(function (o) {
+        const group = JSON.stringify(o[name])
+        groups[group] = groups[group] || []
+        groups[group].push(o)
+      })
+      return Object.keys(groups).map(function (group) {
+        return {
+          name: group.replace(/\"/g, ""),
+          data: groups[group]
+        }
+      })
+    }
+
+		const baseURL = "http://47.99.212.29:8888"
+		var vue1 = new Vue({
+			el: "#app",
+			data() {
+				return {
+          minDate: new Date(2020, 0, 1),
+          areaStatus: false,
+          partType: ['原厂', '品牌', '其他'],
+          supplierId: '',
+          oid: '',
+          authorization: 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNTQ5IiwiZXhwIjoxNTgxMzE5ODY3fQ.07_mVmQVdIgnWaerljWyTWyYbb4xJ39Cjqni9mjQnu4rV9GL2x7SZkJr5buK9JDnijq1QXWyBOBD1C2ot_wgqQ',
+          disabled: true,
+          data: {},
+          images: [
+            'https://img.yzcdn.cn/vant/apple-1.jpg',
+            'https://img.yzcdn.cn/vant/apple-2.jpg',
+            'https://img.yzcdn.cn/vant/apple-3.jpg',
+            'https://img.yzcdn.cn/vant/apple-4.jpg',
+          ],
+          partList: [],
+          index: '',
+          i: '',
+          rowDate: ''
+				}
+			},
+      mounted() {
+        this.oid = this.getQueryVariable("oid")
+        this.supplierId = this.getQueryVariable("supplierid")
+        this.authorization = this.getQueryVariable("token")
+        // axios.get(`${baseURL}/vehicle/supplier/employee/getSupplierAuthToken`, {
+        //   params: {
+        //     supplierid: this.supplierId
+        //   }
+        // }).then(res => {
+        //   console.log(res);
+        // }).catch(err => {
+        //   this.$toast(err.response.data.message)
+        // })
+        this.init()
+      },
+			methods: {
+        init(){
+          axios({
+            methods: 'get',
+            url: `${baseURL}/vehicle/supplier/askPrice/askPriceDetail`,
+            params: {
+              oid: this.oid
+            },
+            headers: {
+              authorization: this.authorization
+            }
+          })
+          .then(response => {
+            if(response.data.code == 200){
+              this.data = response.data.data
+              this.partList = groupBy(this.data.askPricePartList, 'partName')
+            }else{
+              this.$toast(response.data.message)
+            }
+          }).catch(error => {
+            console.log(error)
+          })
+        },
+        showImagePreview() {
+          const images = this.data.partPictures.map(v => {
+            return v.picUrl
+          })
+          const instance = vant.ImagePreview({
+            images,
+            startPosition: typeof position === 'number' ? position : 0,
+          })
+        },
+        showImagePreviews(list) {
+          const images = list.map(v => {
+            return v.picUrl
+          })
+          const instance = vant.ImagePreview({
+            images,
+            startPosition: typeof position === 'number' ? position : 0,
+          })
+        },
+        dateDig(index, i){
+          this.areaStatus = true
+          this.rowDate = new Date(this.partList[index].data[i].arrivalTime)
+          this.index = index
+          this.i = i
+        },
+        dateChange(event){
+          this.partList[this.index].data[this.i].arrivalTime = moment(event).format('YYYY-MM-DD')
+          this.areaStatus = false
+        },
+        offerPrice(){
+          let status = 0
+          let lists = this.data.askPricePartList
+          for (let index = 0; index < lists.length; index++) {
+            const element = lists[index]
+            if(!element.price) {
+              status = 1
+              break
+            }
+          }
+          if(status == 1) return this.$toast('请填写所有配件的价格')
+          
+          const loading = this.$toast.loading({
+						mask: true,
+						duration: 0,
+						message: '正在提交...'
+					})
+
+					axios.post(`${baseURL}/vehicle/supplier/askPrice/offerPrice`, this.data, {headers: {
+              authorization: this.authorization
+          }}).then(res => {
+						loading.clear()
+						const result = res.data
+						if (result.code === 200) {
+							this.$toast.success('提交成功')
+              this.init()
+						} else {
+							this.$toast(result.message)
+						}
+					}).catch(err => {
+						loading.clear()
+						this.$toast(err.response.data.message)
+					})
+        },
+				talkPrice(askPricePartId, status, talkPrice) {
+          const data = {
+            askPricePartId: askPricePartId,
+            status: status,
+            talkPrice: talkPrice
+          }
+					axios.post(`${baseURL}/vehicle/garageAskPrice/handleTalkPrice`, data, {headers: {
+              authorization: this.authorization
+          }}).then(res => {
+						const result = res.data
+						if (result.code === 200) {
+							this.$toast.success('同意议价成功')
+              this.init()
+						} else {
+							this.$toast(result.message)
+						}
+					}).catch(err => {
+						this.$toast(err.response.data.message)
+					})
+				},
+        getQueryVariable(variable) {
+					var query = window.location.search.substring(1);
+					var vars = query.split("&");
+					for(var i = 0; i < vars.length; i++) {
+						var pair = vars[i].split("=");
+						if(pair[0] == variable) {
+							return pair[1];
+						}
+					}
+					return(false);
+				}
+			}
+		})
+	</script>
+</html>
