@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>修理厂业务管理</title>
+    <!-- 公共库 -->
+    <!-- 引入mint ui样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/mint-ui/lib/style.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vant@2.1/lib/vant.min.js"></script> -->
+    <script src="./js/area.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/manage.css">
+</head>
+    
+<body>
+    <div id="app">
+        <div class="xiuli">
+            <div class="app_ye" style="z-index: 69;">
+                <div class="left ye ye_l">修理厂名称：</div>
+                <div class="ye left c2A9F58 name">{{name}}
+                </div>
+
+                    <div class="right riqi" @click="selectYear">
+                        <div>日期：</div>
+                        <div class="show_year">
+                            {{year}}-{{month}}
+                        </div>
+                    </div>
+            </div>
+        <div class="list">
+                <table >
+                        <tr>
+                            <th>日期</th>
+                          <th>工单数</th>
+                          <th>工时金额</th>
+                          <th>配件金额</th>
+                          <th>订单总额</th>
+                        </tr>
+                        <tr v-for="item in list" :key="item.index" v-if="list != ''">
+                        <td>{{item.bizDate.substring(item.bizDate.length-5)}}</td>
+                          <td>{{item.orderCount}}</td>
+                          <td>${{item.itemAmount}}</td>
+                          <td>{{item.partAmount}}</td>
+                          <td>${{item.orderAmount}}</td>
+                        </tr>
+                      
+                      </table>
+                      <div v-if="list == ''" class="wu">暂无当月数据~</div>
+        </div>
+            <!-- @touchmove.prevent 阻止默认事件，此方法可以在选择时间时阻止页面也跟着滚动。 -->
+            <mt-datetime-picker v-model="dateValue" type="date" ref="datePicker" year-format="{value} 年"
+                month-format="{value} 月" date-format="{value} 日" :endDate="new Date()" @confirm="handleConfirm">
+            </mt-datetime-picker>
+
+
+
+        </div>
+    </div>
+</body>
+<!-- 引入mint ui组件库 -->
+<script src="https://unpkg.com/mint-ui/lib/index.js"></script>
+<script>
+
+    const baseURL = "http://47.99.212.29:8888"
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+            return {
+                year: '',//年
+                month: '',//月
+                isClicked: false,
+                dateValue: new Date(),
+                gid:'',
+                name:'',
+                list:[]
+            }
+        },
+        created() {
+            console.log(new Date().getMonth()+1)
+         
+            this.year = new Date().getFullYear()
+            var month = new Date().getMonth()+1
+            if(month>10){
+                this.month = new Date().getMonth()+1
+            }else{
+                this.month = '0' + month
+            }
+
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.gid = getSearchString('gid', search); //结果：18
+            this.name = getSearchString('name', search); //结果：18
+            this.gatalist()
+        },
+        methods: {
+
+            gatalist() {
+
+                let yue =  this.year +'-'+this.month
+                    axios({
+                        methods: 'get',
+                        url: `${baseURL}/vehicle/order/queryGarageDetailDateReport`,
+                        params: {
+                            // salesmanId: this.salesmanId
+                            gid: this.gid,
+                            month:yue,
+                        },
+                        headers: {
+                            authorization: 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyNTI2IiwiZXhwIjoxNTg2OTk2NDM3fQ.krjBysAEfn0vdZabqxCYwNy3ZfKdNPpdR93-ENhScXATAbWNbhs2Ay1rQDqnlnQv_hxsFDLaZbEiGrq7KyxSug'
+                        }
+                    })
+                        .then(response => {
+                            console.log(response.data.data)
+                            this.Count = response.data.data.length
+                            if (response.data.code == 200) {
+                                this.list = response.data.data
+                            } else {
+                                this.$toast(response.data.message)
+                            }
+                        }).catch(error => {
+                            console.log(error)
+                        })
+                },
+
+            selectYear() {
+              
+                this.$refs.datePicker.open();
+                //获取年历日月元素并影藏  //2是日元素、1是月元素、0是年元素
+                this.$refs.datePicker.$el.getElementsByClassName('picker-slot')[2].style.display = 'none'
+            },
+            handleConfirm(value) {
+                console.log(value);
+                this.year = value.getFullYear();
+                var yue = value.getMonth() + 1
+                // var date = this.date = value.getDate();
+                if (yue >= 10) {
+                    this.month = yue;
+                } else {
+                    this.month = '0' + yue;
+                }
+                var yue =  this.year +'-'+this.month
+                this.gatalist()
+                this.isClicked = true;
+            },
+        }
+    })
+</script>
+
+</html>

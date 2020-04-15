@@ -58,11 +58,11 @@
 			</van-popup>
 			<!-- 弹出选择业务员 -->
 			<van-popup v-model="salesman" position="bottom">
-				<van-picker show-toolbar :columns="columns" @cancel="onCancel" @confirm="onConfirm" v-show="salesman"
-					bind:change="onChange" />
+				<van-picker show-toolbar :columns="list" value-key="realName" @cancel="onCancel" @confirm="onConfirm"
+					v-show="salesman" bind:change="onChange" />
 			</van-popup>
 
-			<van-field v-model="salesman.city" required clearable label="业务员" placeholder="请选择" readonly
+			<van-field v-model="addForm.salesman" required clearable label="业务员" placeholder="请选择" readonly
 				@click="salesman = true"></van-field>
 		</van-cell-group>
 
@@ -87,8 +87,12 @@
 				},
 				business: [],
 				facade: [],
+				list: [],
 				disabled: false
 			}
+		},
+		created() {
+			this.yewuyuan()
 		},
 		methods: {
 			areaConfirm(event) {
@@ -96,12 +100,45 @@
 				this.areaStatus = false
 			},
 			onConfirm(value, index) {
-				console.log((`当前值：${value}, 当前索引：${index}`))
+				// console.log(value)
+				this.addForm.salesman = value.realName
+				this.addForm.salesmanId = value.id
 				this.salesman = false
 			},
+
 			onCancel() {
 				console.log((`取消`))
 				this.salesman = false
+			},
+
+			yewuyuan() {
+				axios({
+					methods: 'get',
+					url: `${baseURL}/vehicle/org/employee/salesmanList`,
+				})
+					.then(response => {
+						console.log(response.data)
+						if (response.data.code == 200) {
+							let arr = response.data.data
+							// this.list = response.data.data
+							if (this.list == "") {
+								var list = [];
+								var obj = {};
+								for (var i = 0; i < arr.length; i++) {
+									if (!obj[arr[i].realName]) {
+										list.push(arr[i]);
+										obj[arr[i].realName] = true;
+									}
+								}
+								this.list = list;
+							}
+							// console.log(this.list)
+						} else {
+							this.$toast(response.data.message)
+						}
+					}).catch(error => {
+						console.log(error)
+					})
 			},
 			businessRead(file) {
 				let content = file.file
@@ -156,12 +193,12 @@
 				if (!this.addForm.legalPerson) return this.$toast('请输入法人名称')
 				if (!this.addForm.businessLicensePic) return this.$toast('请上传营业执照')
 				if (!this.addForm.doorPic) return this.$toast('请上传门面照片')
+				if (!this.addForm.salesman) return this.$toast('请选择业务员')
 				const loading = this.$toast.loading({
 					mask: true,
 					duration: 0,
 					message: '正在提交...'
 				})
-
 				axios.post(`${baseURL}/vehicle/garage/regGarage`, this.addForm).then(res => {
 					loading.clear()
 					const result = res.data
