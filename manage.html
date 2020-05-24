@@ -56,7 +56,7 @@
                         <div class="left phone">
                             <van-icon name="phone-o" size="12" />{{item.legalPhone?item.legalPhone:'--'}}</div>
                         <div class="right ye_r">
-                            <van-icon name="notes-o" size="12" />{{item.createdDate?item.createdDate:'--'}}</div>
+                            <van-icon name="notes-o" size="12" />{{item.createdDate?item.createdDate.substring(0,10):'--'}}</div>
                     </div>
                     <div class="list_a">
                         <div class="left ye_l">今日：{{item.dayCount?item.dayCount:'--'}}</div>
@@ -121,7 +121,7 @@
         methods: {
             getDescribe(id, name) {
                 //   直接调用$router.push 实现携带参数的跳转
-                location.href = "manageDetail.html?gid=" + id + "&name=" + name;
+                location.href = "manageDetail.html?gid=" + id + "&name=" + name+ "&token="+this.token;
             },
             onConfirm(value, index) {
                 // console.log(value)

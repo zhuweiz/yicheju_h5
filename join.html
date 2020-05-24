@@ -12,7 +12,9 @@
 	<script src="https://cdn.jsdelivr.net/npm/vant@2.1/lib/vant.min.js"></script>
 	<script src="./js/area.js"></script>
 	<link rel="stylesheet" href="css/baseStyle.css" />
-	<link rel="stylesheet" href="css/style.css" />
+	<link rel="stylesheet" href="css/style2.css" />
+	<script type="text/javascript"
+		src="https://api.map.baidu.com/api?v=2.0&ak=VbB7X5UN7mS9zlVSH00HSnTuwaOfdYrW"></script>
 </head>
 
 <body>
@@ -20,8 +22,21 @@
 		.sumit {
 			width: 100%;
 			padding: 10px;
-			position: absolute;
+			position: fixed;
 			bottom: 0;
+		}
+
+		.jjdd {
+			position: absolute;
+			right: 0;
+			margin-right: 15px;
+			width: 80px;
+			text-align: center;
+			border: 1.5px solid #0D906E;
+			color: #0D906E;
+		}
+		.van-cell-group {
+			padding-bottom: 60px;
 		}
 	</style>
 	<div id="app">
@@ -35,6 +50,19 @@
 			<van-field v-model="addForm.legalPerson" required clearable label="法人名称" placeholder="请输入法人名称"></van-field>
 			<van-field type="tel" v-model="addForm.legalPersonPhone" required clearable label="手机号"
 				placeholder="请输入手机号"></van-field>
+			<div class="van-cell van-cell--required van-field">
+				<div class="van-cell__title van-field__label"><span>门店纬度</span></div>
+				<div class="van-field__body">{{addForm.positionWd}}</div>
+				<div class=" jjdd" @click="acquire()">获取位置</div>
+			</div>
+			<div class="van-cell van-cell--required van-field">
+				<div class="van-cell__title van-field__label"><span>门店经度</span></div>
+				<div class="van-field__body">{{addForm.positionJd}}</div>
+			</div>
+			<!-- <van-field type="tel" v-model="addForm.legalPersonPhone" required clearable label="门店纬度" placeholder="门店纬度">
+			</van-field>
+			<van-field type="tel" v-model="addForm.legalPersonPhone" required clearable label="门店经度" placeholder="门店经度">
+			</van-field> -->
 			<div class="van-cell van-cell--required van-field">
 				<div class="van-cell__title van-field__label"><span>营业执照</span></div>
 				<div class="van-cell__value">
@@ -65,7 +93,8 @@
 			<van-field v-model="addForm.salesman" required clearable label="业务员" placeholder="请选择" readonly
 				@click="salesman = true"></van-field>
 		</van-cell-group>
-
+		<!-- <p id="demo">点击这个按钮，获得您的坐标：</p>
+		<button  @click="cdddd()">试一下</button> -->
 		<div class="sumit">
 			<van-button type="primary" size="large" :disabled="disabled" @click="submitForm">提交</van-button>
 		</div>
@@ -81,9 +110,12 @@
 			return {
 				areaStatus: false,//地理位置
 				salesman: false,//业务员
+
 				columns: ['杭州', '宁波', '温州', '嘉兴', '湖州'],
 				addForm: {
-					area: ''
+					area: '',
+					positionJd: '',
+					positionWd: '',
 				},
 				business: [],
 				facade: [],
@@ -94,7 +126,30 @@
 		created() {
 			this.yewuyuan()
 		},
+		mounted() {
+
+		},
+
 		methods: {
+			//获取当前地理位置
+			acquire() {
+				var _this = this
+				if (navigator.geolocation) {
+					var geolocation = new BMap.Geolocation();
+					geolocation.getCurrentPosition(function (r) {
+						if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+							_this.addForm.positionJd = r.point.lng
+							_this.addForm.positionWd = r.point.lat
+							_this.$toast('获取当前位置成功')
+						} else {
+							alert('failed' + this.getStatus());
+						}
+					}, { enableHighAccuracy: true })
+				} else {
+					// alert('获取失败')
+					_this.$toast('获取失败')
+				}
+			},
 			areaConfirm(event) {
 				this.addForm.city = `${event[0].name}${event[1].name}`
 				this.areaStatus = false
@@ -186,14 +241,19 @@
 					this.facade = []
 				})
 			},
+			//提交
 			submitForm() {
 				if (!this.addForm.name) return this.$toast('请输入公司名称')
 				if (!this.addForm.city) return this.$toast('请选择所在地')
 				if (!this.addForm.address) return this.$toast('请输入公司地址')
 				if (!this.addForm.legalPerson) return this.$toast('请输入法人名称')
+				if (!this.addForm.legalPersonPhone) return this.$toast('请输入手机号码')
+				if (!this.addForm.positionJd) return this.$toast('请获取当前经纬度')
+				if (!this.addForm.positionWd) return this.$toast('请获取当前经纬度')
 				if (!this.addForm.businessLicensePic) return this.$toast('请上传营业执照')
 				if (!this.addForm.doorPic) return this.$toast('请上传门面照片')
 				if (!this.addForm.salesman) return this.$toast('请选择业务员')
+				
 				const loading = this.$toast.loading({
 					mask: true,
 					duration: 0,
