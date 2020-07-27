@@ -1,0 +1,113 @@
+.van-cell{
+    background: #f5f5f5;
+    height: 32px;
+    border-radius: 5px;
+}
+.van-button--small {
+    width: 55px;
+}
+.qipei{
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+.van-search{
+    border-bottom: 5px solid #ebedf0;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    z-index: 99;
+}
+.van-popup{
+    z-index: 99;
+}
+.list{
+    margin-top: 59px;
+}
+.qipei_s{
+    margin-right: 10px;
+}
+.sumit{
+    width: 100%;
+    /* padding: 10px; */
+    position: fixed;
+    height: 45px;
+    background:#fff;
+    z-index: 9;
+    bottom: 0;
+}
+.sumit .van-button{
+    height: 45px;
+    font-size: 14px;
+    width: 100%;
+}
+.list_a{
+
+    font-size: 13px;
+    overflow: hidden;
+    border-bottom: 1px solid #ebedf0;
+}
+.qipei_name{
+    line-height: 24px;
+}    
+.qipei_w{
+    color: #646566;
+}
+.wode{
+    background: #0d906e;
+    color: #fff;
+    width: 35px;
+    height: 20px;
+    border-radius: 5px;
+    line-height: 20px;
+    text-align: center;
+}
+.haoma{
+    margin-right: 8px;
+}
+.van-checkbox{
+    margin-top: 2px;
+}
+.cheng{
+    width: 42%;
+    line-height: 40px;
+    margin-left: 20px;
+}
+.cheng2{
+    width: 42%;
+    line-height: 40px;
+    margin-left: 20px;
+    color: #646566
+}
+.chen{
+    width: 42%;
+    line-height: 40px;
+    padding-left: 20px;
+}
+.chen2{
+    width: 42%;
+    line-height: 40px;
+    padding-left: 20px;
+    color: #646566
+}
+.letz_a_A{
+    width: 42%;
+    line-height: 40px;
+    padding-left: 20px;
+    background: #0d906e;
+}
+.ddc{
+    position: relative;
+    overflow: hidden;
+}
+.bbt{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 130px;
+}
+.ov_v{
+    overflow-y: auto;
+    width: 100%;
+    max-height: 250px;
+}

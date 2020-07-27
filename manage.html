@@ -67,7 +67,11 @@
                         <div class="right ye_r">￥ {{item.monthAmount?item.monthAmount:'--'}}
                             <van-icon name="arrow" />
                         </div>
-
+                    </div>
+                    <div class="list_a">
+                        <div class="left ye_l">最近工单时间：</div>
+                        <div class="left phone"></div>
+                        <div class="right ye_r">{{item.lastOrderTime?item.lastOrderTime:'--'}}</div>
                     </div>
                 </div>
 
@@ -75,7 +79,8 @@
         </div>
 </body>
 <script>
-    const baseURL = "http://47.99.212.29:8888"
+     const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
     var vue1 = new Vue({
         el: "#app",
         data() {
@@ -118,6 +123,11 @@
             this.gatalist()
             this.namelist()
         },
+        mounted() {
+            window.addEventListener("popstate", function(e) {
+alert("我监听到了浏览器的返回按钮事件啦");//根据自己的需求实现自己的功能
+}, false);
+        },
         methods: {
             getDescribe(id, name) {
                 //   直接调用$router.push 实现携带参数的跳转
@@ -133,6 +143,7 @@
                         // salesmanId: this.salesmanId
                         salesmanId: value.id,
                         suppAuthToken: this.token
+                        // suppAuthToken: '$2a$10$h9bPdWgYI8z6KLm02v/ghuJba1u8IzJR21aamEXA7Jx6zg7DvhMEW'
                     },
 
                 })
@@ -160,8 +171,9 @@
                     url: `${baseURL}/vehicle/order/queryGarageSumGroupReport`,
                     params: {
                         // salesmanId: this.salesmanId
-                        salesmanId: this.salesmanId,
+                        salesmanId: 0,
                         suppAuthToken: this.token
+                        // suppAuthToken: '$2a$10$h9bPdWgYI8z6KLm02v/ghuJba1u8IzJR21aamEXA7Jx6zg7DvhMEW'
                     },
 
                 })

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>修理厂业务管理</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/qipeishang.css">
+</head>
+
+<body>
+    <div id="app">
+        <van-search v-model="value" show-action placeholder="请输入搜索关键词">
+            <template #action>
+                <!-- <div @click="onSearch">搜索</div> -->
+                <div class="left qipei_s" @click.stop.prevent="showPopup">
+                    <img class="qipei" src="img/saixuan.png" alt="">
+                    <span>汽配城</span>
+                </div>
+                <van-button size="small" color="#0d906e" type="primary" @click.stop.prevent="onSearch">查找</van-button>
+            </template>
+        </van-search>
+        <div class="list">
+            <div class="list_a" v-for="(item,index) in QPlist" :key="index" @click="toggle(index)">
+                <div style="padding: 2px 16px;overflow: hidden;" class="qipei_name">
+                    <span class="left">{{item.supplierName}}</span>
+                    <van-checkbox ref="checkboxes" checked-color="#0d906e" class="right" v-model="item.checked">
+                    </van-checkbox>
+                    <span class="right haoma">{{item.phone}}</span>
+                </div>
+                <div style="padding: 0px 16px 8px 16px;overflow: hidden;" class="qipei_w">
+                    <span class="left">{{item.scope}}</span>
+                    <span class="right wode" v-if="item.gid != null">我的</span>
+                </div>
+            </div>
+            <div style="height: 45px;"></div>
+        </div>
+
+        <div class="sumit">
+            <!-- :disabled="disabled" @click="submitForm" -->
+            <van-button type="danger" size="small" @click="xunjia">询价</van-button>
+        </div>
+        <van-popup v-model="show" position="bottom" :style="{ height: '50%' }">
+            <div class="ddc">
+                <div>
+                    <div class="left cheng">汽配城</div>
+                    <div class="left cheng2">地址</div>
+                </div>
+                <div class="ov_v">
+                    <div v-for="item in chengList" :key="item">
+                        <div class="left " @click="switTown(item.id)" :class="item.id==switchActive2?'letz_a_A':'chen'">
+                            {{item.name}}</div>
+                        <div class="left chen2">{{item.locationTown}}</div>
+                    </div>
+                </div>
+            </div>
+            <van-button class="bbt" type="danger" @click="queding">确定</van-button>
+        </van-popup>
+    </div>
+</body>
+<script>
+    const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                value: '',
+                checked: '',
+                show: false,
+                QPlist: [],
+                chengList: [],
+                gid: '1',
+                switchActive2: '',
+                dto: {}
+            }
+        },
+        created() {
+            // this.returnButton()
+            this.dto = JSON.parse(sessionStorage.getItem('data'))
+            this.namelist()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.token = getSearchString('token', search); //结果：18
+            this.salesmanId = getSearchString('salesmanId', search); //结果：2
+            this.salesman = getSearchString('salesman', search); //结果：2
+
+        },
+        mounted() {
+        },
+        methods: {
+            onSearch() {
+                this.namelist()
+            },
+            //点击切换选择汽配商
+            switTown(i) {
+                // console.log(i);
+                this.switchActive2 = i;
+            },
+            queding() {
+                this.namelist()
+                this.show = false
+            },
+            xunjia() {
+                this.dto.supplierList = []
+                this.QPlist.map((c, i) => {
+                    console.log(c)
+                    if (c.checked) {
+                        c.companyName = c.supplierName
+                        c.manageRemark = c.scope
+                        this.dto.supplierList.push(c)
+                    }
+                })
+                sessionStorage.setItem('data', JSON.stringify(this.dto));
+                sessionStorage.setItem('isok', 'true');
+                // location.href = "enquiry.html?isok=" + 'true';
+                history.go(-1)
+                console.log(this.dto)
+            },
+            showPopup() {
+                axios({
+                    methods: 'get',
+                    url: `${baseURL}/vehicle/garageAskPrice/getAllPartTown`,
+                    params: {
+
+                    },
+                })
+                    .then(response => {
+                        if (response.data.code == 200) {
+                            this.chengList = response.data.data
+                            this.switchActive2 = response.data.data[0].id
+                        } else {
+                            this.$toast(response.data.message)
+                        }
+                    }).catch(error => {
+                        console.log(error)
+                    })
+                this.show = true
+            },
+            toggle(index) {
+                console.log(index)
+                this.$refs.checkboxes[index].toggle();
+            },
+            namelist() {
+                axios({
+                    methods: 'get',
+                    url: `${baseURL}/vehicle/garage/querySupplierByGid`,
+                    params: {
+                        // gid: 1,
+                        isMy: this.dto.isMy,
+                        standard: this.value,
+                        partTownId: this.switchActive2,
+                        page: 0,
+                        size: 99,
+                    },
+                })
+                    .then(response => {
+                        if (response.data.code == 200) {
+                            this.QPlist = response.data.data
+                            this.QPlist.map((c, i) => {
+                                this.$set(c, "checked", false);
+                            });
+                        } else {
+                            this.$toast(response.data.message)
+                        }
+                    }).catch(error => {
+                        console.log(error)
+                    })
+            },
+        }
+    })
+</script>
+
+</html>

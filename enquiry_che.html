@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>选择车型</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="https://unpkg.com/better-scroll@1.0.1/dist/bscroll.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/http.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/enquiry_che.css">
+</head>
+
+<body>
+    <div id="app">
+        <van-search v-model="brandName" show-action placeholder="请输入关键字" @search="shousuo">
+            <template #action>
+                <van-button size="small" color="#0d906e" type="primary" @click="shousuo">搜索</van-button>
+            </template>
+        </van-search>
+        <div class="boy">
+            <div class="left let_a">
+                <van-index-bar class="indexBar" :sticky="false" highlight-color="#07c160">
+                   <van-index-anchor v-for="(item,index) in firstName" :key="index" :index="index"> 
+                              <span class="indexWord">{{index}}</span> 
+                    <!-- <van-cell @click="chelist(item)" v-for="(items,index) in item" :key="index"
+                        :title="items.ppinpai" /> -->
+                           <div v-for="items in item" :key="items" class="p_list" @click="chelist(items)"
+                    :class="items.id==switchActive2?'letz_a_A':'p_list'">
+                    <img class="pinpai_img" :src="items.ppinpaiLogoUrl" alt="">
+                    <span class="pinpai_txt">{{items.ppinpai}}</span>
+                </div>
+                    </van-index-anchor>
+                </van-index-bar>
+
+                <!-- <div v-for="item in pinpai" :key="item" class="p_list" @click="chelist(item)"
+                    :class="item.id==switchActive2?'letz_a_A':'p_list'">
+                    <img class="pinpai_img" :src="item.ppinpaiLogoUrl" alt="">
+                    <span class="pinpai_txt">{{item.ppinpai}}</span>
+                </div> -->
+            </div>
+            <div class="left let_b">
+                <div v-for="items in chexin" :key="items" class="chexin_lis" @click="pailist(items)">
+                    {{items.seriesName}}
+                </div>
+            </div>
+        </div>
+        <!-- <div class="shortcut shortcut-hook" style="top:100px !important;" @touchstart="touchIndex">
+            <ul style="width: 100px;text-align: left;padding: 20px 0">
+                <li v-for="i in cityData" :data-anchor="i" class="item">{{i}}</li>
+            </ul>
+        </div> -->
+    </div>
+</body>
+<script>
+    const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                brandName: '',
+                cityData: ['★', "A", "B", "C", "D", "E", "F", "G",
+                    "H", "I", "J", "K", "L", "M", "N",
+                    "O", "P", "Q", "R", "S", "T", "U",
+                    "V", "W", "X", "Y", "Z"
+                ],
+                touch: {},
+                cityWrapper: document.querySelector('.boy'),
+                cityScroller: document.querySelector('.let_a'),
+                pinpai: [],
+                firstName:[],
+                switchActive2: null,
+                chexin: [],
+                dto: {}
+            }
+        },
+        created() {
+            this.dto = JSON.parse(sessionStorage.getItem('data'))
+            this.namelist()
+            // this.returnButton()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.token = getSearchString('token', search); //结果：18
+            this.salesmanId = getSearchString('salesmanId', search); //结果：2
+            this.salesman = getSearchString('salesman', search); //结果：2
+
+        },
+        mounted() {
+
+
+        },
+        methods: {
+            goBack() {
+                window.history.go(-1)
+                console.log("监听到了");
+            },
+            shousuo() {
+
+                this.namelist()
+            },
+            pailist(item) {
+                console.log(item)
+                if (item.seriesName == '全部车型') {
+                    this.dto.carModel = item.brandName
+                } else {
+                    this.dto.carModel = item.seriesName
+                }
+                this.dto.carBrand = item.brandName
+                sessionStorage.setItem('data', JSON.stringify(this.dto));
+                sessionStorage.setItem('isok', 'true');
+                // location.href = "enquiry.html?isok=" + 'true';
+                // location.replace("enquiry.html?isok=" + 'true')
+                history.go(-1)
+            },
+            namelist() {
+                axios({
+                    methods: 'get',
+                    url: `${baseURL}/vehicle/config/brand/list`,
+                    params: {
+                        brandName: this.brandName
+                    },
+                })
+                    .then(response => {
+                        if (response.data.code == 200) {
+                            var arr = response.data.data
+                            var hash = [];
+                            for (var i = 0; i < arr.length; i++) {
+                                if (hash.indexOf(arr[i].pshouzimu) == -1) {
+                                    hash.push(arr[i].pshouzimu);
+                                }
+                            }
+                            let firstName = {};
+                            hash.map((c, i) => {
+                                firstName[c] = [];
+                                arr.map((d, i) => {
+                                    if(c == d.pshouzimu){
+                                        firstName[c].push(d)
+                                    }
+
+                                });
+                            });
+                            console.log(firstName)
+                            this.firstName =firstName
+                            // this.pinpai = response.data.data
+
+                            if (response.data.data) {
+                                this.switchActive2 = response.data.data[0].id
+                                this.chelist(response.data.data[0])
+                            }
+
+                        } else {
+                            this.$toast(response.data.message)
+                        }
+                    }).catch(error => {
+                        console.log(error)
+                    })
+            },
+            chelist(item) {
+                this.switchActive2 = item.id;
+                axios({
+                    methods: 'get',
+                    url: `${baseURL}/vehicle/config/brand/carSeries/findList`,
+                    params: {
+                        brandId: item.ppinpaiId
+                    },
+                })
+                    .then(response => {
+                        if (response.data.code == 200) {
+                            console.log(response.data.data)
+                            this.chexin = response.data.data
+                        } else {
+                            this.$toast(response.data.message)
+                        }
+                    }).catch(error => {
+                        console.log(error)
+                    })
+            },
+            touchIndex: function (e) {
+                console.log(e, 'e')
+                let v = this
+                let anchor = e.target.getAttribute('data-anchor')
+                // console.log(anchor ,'anchor')
+                let firstTouch = e.touches[0]
+                v.touch.y1 = firstTouch.pageY
+                v.touch.anchor = anchor
+                v.scrollTo(anchor)
+            },
+            scrollTo: function (anchor) {
+                let v = this
+                v.cityScroller = document.querySelector('.let_a')
+                var maxScrollY = v.cityWrapper.clientHeight - v.cityScroller.clientHeight
+                console.log(maxScrollY)
+                // var y = Math.min(0, Math.max(maxScrollY, v.cityData[anchor]))
+                // if (typeof y !== 'undefined') {
+                v.scroll.scrollTo(0, 400);
+                // }
+            },
+        }
+    })
+</script>
+
+</html>

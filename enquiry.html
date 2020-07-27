@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>询价</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <!-- <script src="./js/jquery.min.js"></script> -->
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/https.js"></script>
+    <script src="js/qs.min.js"></script>
+    <script src="./js/websocket.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/enquiry.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="h1 bot"><span>询价单</span> <span style="margin-left: 35px;">{{dto.billNumber}}</span></div>
+        <van-cell-group class="bot">
+            <van-field v-model="dto.carModel" label="车型" @input="chexinB($event)" @focus='ios' @blur="ios2"
+                placeholder="请选择或输入">
+                <template #button>
+                    <!-- <van-button size="small" type="primary">发送验证码</van-button> -->
+                    <div style="color:#0d906e;width: 28px;margin-right: 10px;" class="left xuan"> </div>
+                    <div style="color:#0d906e" class="right" @click="xuanzhe">选择</div>
+                </template>
+            </van-field>
+            <van-field v-model="dto.carVin" clearable @focus='ios' @blur="ios2" label="车架号" placeholder="">
+                <template #button>
+                    <!-- <van-button size="small" type="primary">发送验证码</van-button> -->
+                    <div class="left xuan">
+                        <van-uploader class="right" :after-read="shangc">
+                            <img class="che_img" src="./img/chejia.png" alt="">
+                        </van-uploader>
+                    </div>
+                    <van-uploader class="right" accept="image/*" :before-delete="beforeDeleteC" :after-read="afterRead"
+                        preview-size="30" v-model="dto.fileListd" :max-count="1" />
+                </template>
+            </van-field>
+        </van-cell-group>
+        <div class="bot" style="padding: 10px 16px; ">
+            <div>车身照 （最多6张 <span style="color: red;">{{dto.carPicUrls.length?dto.carPicUrls.length:'0'}}</span>/6）</div>
+            <div class="cheshen">
+                <van-uploader :after-read="afterReadd" :before-delete="beforeDelete" preview-size="40"
+                    v-model="dto.fileList" multiple="true" :max-count="6" />
+            </div>
+        </div>
+        <div class="bot">
+            <van-radio-group v-model="radio" direction="horizontal" class="ridi" style="padding-left: 16px;">
+                <van-radio name="1" icon-size="16px" checked-color="#0d906e">标准模式</van-radio>
+                <van-radio name="2" icon-size="16px" @click="liaotian" checked-color="#0d906e">聊天模式（<span
+                        style="color: red;font-size: 12px;">仅可选择2家供应商</span>）</van-radio>
+            </van-radio-group>
+
+            <div class="ov_he" ref="box" :style="{'background-color': (radio == 1 ? '#fff':'#f5f5f5')}">
+                <!-- overflow: hidden; -->
+                <div v-if="radio == '1'">
+                    <div style="color: #dcdfe6;text-align: center;line-height: 30px; "
+                        v-if="dto.askPricePart4GarageDTOList.length < 1 && radio == '1'">请添加配件哦~</div>
+                    <div class="" style="padding: 5px 16px;border-bottom: 1px solid #ebedf0; "
+                        v-for="(item,index) in dto.askPricePart4GarageDTOList" v-if="radio == '1'">
+                        <div class="h_name" style="position: relative;">
+                            <div class="left cde">
+                                <span class="xuhao left">{{index+1}}</span>
+                                <div class="left sou">
+                                    <input @focus='ios' @blur="shiqu(item)" @input="changeFunc($event,item,index)"
+                                        type="text" class="ip " placeholder="请输入配件名称" v-model="item.partName">
+                                </div>
+                            </div>
+                            <ul class="re" v-if="item.isok && cityList.length >= 1">
+                                <li v-for="(items,index) in cityList" :key="index" v-if="index < 10"
+                                    @click="list_click(items)">{{items.partName}}</li>
+                            </ul>
+                            <div class="right">
+                                <van-stepper button-size="24" @overlimit="add(index)" v-model="item.partCount" />
+                            </div>
+                        </div>
+                        <div class="h_tu">
+                            <div class="left" style="width: 50%">
+                                <van-uploader :after-read="afterReaddd" :before-delete="beforeDelete2" preview-size="27"
+                                    v-model="item.fileList" multiple :max-count="2" />
+                            </div>
+                            <div class="right" style="width: 50%">
+                                <input type="text" class="inp" @focus='ios' @blur="ios2" placeholder="补充配件描述"
+                                    v-model="item.remark">
+                            </div>
+                        </div>
+                        <div style=" clear:both;"></div>
+                    </div>
+                </div>
+                <!-- 聊天 -->
+                <div class="k_chat_body_list" v-if="radio == '2'">
+                    <!-- <div class="k_chat_body_more" @click="more">{{more_title}}</div> -->
+
+                    <div v-for="(it,index) in chat_list" :key="index" v-if="chat_list">
+                        <div :class="{'list_left':it.user_id!=user_id,'list_right':it.user_id==user_id}"
+                            v-if="it.type!=0">
+                            <img :src="it.head_img" :onerror="defaultImg" />
+                            <div v-html="it.content" v-if="it.type==1"></div>
+                            <!-- @click="k_img(it)" -->
+                            <div v-else-if="it.type==2">
+                                <!-- <img :src="it.content" class="k_img" /> -->
+                                <van-image class="k_img" :src="it.content" @click="getImg(it.content)">
+                                </van-image>
+                            </div>
+
+                            <div v-else-if="it.type==3" class="video">
+                                <video :src="it.content" controls :poster="it.last_name"></video>
+                            </div>
+
+                            <div v-else-if="it.type==4||it.type==5" class="file">
+                                <img src="./static/img/file.png" class="file_img" />
+                                <div class="file_div">
+                                    <div>{{it.last_name?it.last_name:"文件"}}</div>
+                                    <div>
+                                        <a :href="it.content"> 下载</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-else class="file" @click="yuyin_check(it , index)">
+                                <div v-if="it.user_id==user_id">
+                                    <span style="padding-left:10px;float:left; margin-top:2px;margin-right: 5px;">
+                                        {{it.type.split("卍")[1]}} "</span>
+                                    <img src="./static/img/yinpin2.png" class="yinpin" />
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="list_left_time" v-if="it.type==0">
+                            {{it.content}}
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+
+                </div>
+                <!-- <div style=" clear:both;"></div> -->
+            </div>
+            <!-- <div> -->
+            <!-- v-if="radio == '2'" -->
+            <div class="tianjia" v-if="radio == '2'">
+                <img class="jiap left" src="./img/jianpan.png" alt="">
+                <textarea value="" v-model="sendmsg" placeholder="请输入内容" class="sendmsg" ref="send_msg"></textarea>
+                <van-button class="fasong" type="info" @click="send(1)">发送</van-button>
+                <van-uploader class="right" :after-read="afterRealiaotian">
+                    <img class="jia" src="./img/jia.png" alt="">
+                </van-uploader>
+
+            </div>
+            <div class="tianjia" @click="tianjia" v-if="radio == '1'">
+                <van-icon class="ioc" size="18" name="add-o"></van-icon><span>添加配件</span>
+            </div>
+
+
+
+
+        </div>
+        <div>
+            <div class="gys_name" style="padding: 0px 16px; ">
+                <div class="left">供应商</div>
+
+                <div class="right" @click="getDescribe">选择
+                    <van-icon name="arrow" class="ioc" style="font-size: 16px;" />
+                </div>
+                <div class="right xitong" @click="tuijian">系统推荐</div>
+                <div class="right youxian">
+                    <van-checkbox checked-color="#0d906e" icon-size="16px" v-model="dto.isMy" shape="square">我的商家优先
+                    </van-checkbox>
+                </div>
+            </div>
+            <div class="ov_y">
+                <div class="list_a" v-for="(item,index) in dto.supplierList" :key="index">
+                    <div style="padding: 2px 16px;overflow: hidden;" class="qipei_name">
+                        <span class="left">{{item.companyName}}</span>
+                        <span class="right haoma" @click="shanchu(index)">
+                            <van-icon name="cross" /></span>
+                    </div>
+                    <div style="padding: 0px 16px 2px 16px;overflow: hidden;" class="qipei_w">
+                        <span class="left">{{item.manageRemark}}</span>
+                        <!-- <span class="right wode" v-if="item.gid != null">我的</span> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="height: 50px"></div>
+        <div class="sumit" v-show="isOriginHei">
+            <!-- :disabled="disabled" @click="submitForm" -->
+            <van-button type="danger" size="small" @click="tijiao">提交</van-button>
+        </div>
+    </div>
+</body>
+<script>
+    const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                data: "",
+                picPath: '',
+                radio: '1',
+                beizhu: '',
+                sendmsg: '',
+                screenHeight: document.body.clientHeight,  // 这里是给到了一个默认值 （这个很重要），
+                originHeight: document.body.clientHeight,  //默认高度在watch里拿来做比较
+                isOriginHei: true,    // 这个属性是固定定位按钮的显隐开关
+                QPlist: [],
+                PJlist: [],
+                cityList: [],
+                chat_list: [],
+                user_id: "2467",
+                timer: null,
+                last_name: '',
+                defaultImg: '',
+                biao: null,
+                dto: {
+                    askPricePart4GarageDTOList: [],
+                    carModel: '',//车型
+                    carVin: '',//车架号
+                    carVinPic: '',//车架照片
+                    carPicUrls: [],//车身照
+                    supplierList: [],//汽配商
+                    isMy: false,
+                    carBrand: '',
+                    flag: 0,
+                    oid: '',
+                    gid: '',
+                    partTotalCount: '',//配件数量
+                    fileListd: [],
+                    fileList: [],
+                    billNumber: '',//工单号
+                    createdBy: '',
+                    status: 0//状态
+                }
+            }
+        },
+        created() {
+            // sessionStorage.setItem('token', 'true');
+            // window.addEventListener('beforeunload', e => this.beforeunloadFn(e))
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.token = getSearchString('token', search); //结果：18
+            // var isok = getSearchString('isok', search); //结果：2
+            this.dto.billNumber = getSearchString('billNumber', search); //结果：2
+            this.dto.oid = getSearchString('id', search); //oid
+            this.dto.gid = getSearchString('gid', search); //gid
+            this.dto.createdBy = getSearchString('createdBy', search); //gid
+            // console.log(token)
+            this.getUserInfo()
+            // if (isok) {
+            //     console.log('token')
+            //     this.dto = JSON.parse(sessionStorage.getItem('data'))
+            //     console.log(this.dto)
+
+            // } else {
+            //     sessionStorage.removeItem('data');
+            // }
+            // console.log(this.salesmanId)
+            // console.log(this.salesman)
+
+
+
+
+        },
+
+        mounted() {
+            // console.log(sessionStorage.getItem('isok'))
+            if (sessionStorage.getItem('isok') == null) {
+                sessionStorage.removeItem('data');
+            } else {
+                setTimeout(res => {
+                    this.dto = JSON.parse(sessionStorage.getItem('data'))
+                }, 500);     
+                // sessionStorage.removeItem('data');
+                sessionStorage.removeItem('isok');
+            }
+            getSock(this.getConfigResult)
+            // window.onresize监听页面高度的变化
+            const that = this
+            window.onresize = () => {
+                return (() => {
+                    window.screenHeight = document.body.clientHeight
+                    that.screenHeight = window.screenHeight
+                })()
+            }
+
+            // pushHistory();
+            // window.addEventListener("popstate", function (e) {
+            //     window.location = 'http://www.baidu.com';
+            // }, false);
+            // function pushHistory() {
+            //     var state = {
+            //         title: "title",
+            //         url: "#"
+            //     };
+            //     window.history.pushState(state, "title", "#");
+            // }
+        },
+        watch: {
+            screenHeight(val) {
+                if (this.originHeight < val) {
+                    this.isOriginHei = false;
+                } else {
+                    this.isOriginHei = true;
+                }
+            },
+
+
+        },
+        methods: {
+            liao_LS(id) {
+                let data = {
+                    id: id,
+                    page: 1,
+                    page_size: 10,
+                    token: localStorage.getItem('k_token'),
+                }
+                var parmas = window.Qs.stringify(data);
+                axios.post('/index/index/getTalkHistory', parmas).then((res) => {
+                    console.log(res)
+                    for (var i = 0; i < res.data.data.length; i++) {
+                        this.chat_list.unshift(res.data.data[i])
+                    }
+                    // this.chat_list = res.data.data
+                    this.scrolltop()
+                }).catch((err) => {
+                    console.log(err)
+                })
+
+            },
+
+            //点击放大图片
+            getImg(images) {
+                vant.ImagePreview([images]);
+            },
+
+            //发送聊天消息
+            send(type) {
+                console.log()
+
+                var content = ""
+                if (this.sendmsg == "") {
+                    this.$toast('内容不得为空！')
+                    return false
+                }
+                let data = {
+                    content: this.sendmsg,
+                    created_at: Math.round(new Date() / 1000),
+                    head_img: "/static/img/head.png",
+                    last_name: this.last_name,
+                    message_type: type,
+                    talk_id: localStorage.getItem('talk_id'),
+                    talk_status: 1,//1 会话中 2结束会话
+                    to_user_id: localStorage.getItem('to_user_id'),
+                    type: "push",
+                    user_id: localStorage.getItem('k_userId'),
+                }
+                sendSock(data, this.getConfigResult);
+
+                let list_data = {
+                    content: this.sendmsg,
+                    created_at: Math.round(new Date() / 1000),
+                    head_img: "/static/img/head.png",
+                    last_name: this.last_name,
+                    single_talk_id: localStorage.getItem('talk_id'),
+                    token: localStorage.getItem('k_token'),
+                    type: type,
+                    user_id: localStorage.getItem('k_userId'),
+                }
+
+                var parmas = window.Qs.stringify(list_data);
+                console.log(parmas)
+
+                axios.post('/index/index/saveSingleTalk', parmas).then((res) => {
+                    console.log(res)
+                }).catch((err) => {
+                    console.log(err)
+                })
+
+
+            },
+            getUserInfo(phone) {
+                const data = {
+                    createdBy: this.dto.createdBy,
+                    // createdBy: 1616,
+                };
+                // this.dto.createdBy
+                // var parmas = window.Qs.stringify(data);
+                axios.get(`${baseURL}/vehicle/org/employee/getUser?createdBy=` + data.createdBy, data
+                ).then((res) => {
+                    localStorage.setItem("k_userId", res.data.data.id);
+                    localStorage.setItem("token", res.data.data.token)
+                    this.list()
+                    axios.get(`${baseURL}/vehicle/order/gettoken`, {
+                        data: {},
+                        headers: window.localStorage.getItem('token') ? { 'Authorization': window.localStorage.getItem('token') } : {},
+                    })
+                        .then(res => {
+                            // console.log(this.fileListd);
+                            if (res.data.code == 200) {
+                                var list_data = {}
+                                list_data = JSON.parse(res.data.data)
+                                localStorage.setItem("k_token", list_data.data.token)
+                                console.log(list_data)
+                            } else {
+                                this.$toast(res.data.message)
+                            }
+
+                        })
+                }).catch((err) => {
+                    console.log(err)
+                })
+                //获取聊天token
+
+            },
+            dataURLtoFile(dataurl, filename) { // 将base64转换为file文件
+                let arr = dataurl.split(',')
+                let mime = arr[0].match(/:(.*?);/)[1]
+                let bstr = atob(arr[1])
+                let n = bstr.length
+                let u8arr = new Uint8Array(n)
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n)
+                }
+                return new File([u8arr], filename, { type: mime })
+            },
+
+            shangc(file) {
+                let canvas = document.createElement('canvas') // 创建Canvas对象(画布)
+                let context = canvas.getContext('2d')
+                let img = new Image()
+                img.src = file.content // 指定图片的DataURL(图片的base64编码数据)
+                img.onload = () => {
+                    canvas.width = 400
+                    canvas.height = 300
+                    context.drawImage(img, 0, 0, 400, 300)
+                    file.content = canvas.toDataURL(file.file.type, 0.5) // 0.92为默认压缩质量
+                    let files = this.dataURLtoFile(file.content, file.file.name)
+                    console.log(files)
+                    const data = new FormData()
+                    data.append('file', files)
+                    axios.post(`${baseURL}/vehicle/file/vinCode`, data)
+                        .then(res => {
+                            if (res.data.code == 200) {
+                                console.log(res.data.data)
+                                var data = {}
+                                data = JSON.parse(res.data.data)
+                                this.dto.carVin = data.words_result[0].words
+                                console.log(data)
+                            } else {
+                                this.$toast(res.data.message)
+                            }
+
+                        })
+                }
+            },
+
+
+
+            liaotian() {
+                if (this.dto.supplierList.length < 1) {
+                    this.$toast.fail('请先选择汽配商！')
+                    this.radio = '1'
+                } else if (this.dto.supplierList.length > 2) {
+                    this.$toast.fail('只能选择2家汽配商！')
+                    this.radio = '1'
+                } else {
+                    // c.userId
+                    this.dto.supplierList.map((c, i) => {
+                        localStorage.setItem("to_user_id", c.userId);
+                        axios.get(`${baseURL}/vehicle/garageAskPrice/getTalkRoom/` + localStorage.getItem('k_userId') + '/' + c.userId,
+                            { headers: { 'Authorization': window.localStorage.getItem('token') } }
+                        ).then((res) => {
+                            localStorage.setItem("talk_id", res.data.data);
+                            this.liao_LS(res.data.data)
+                            // console.log(res.data.data)
+                        })
+                    });
+
+                    this.scrolltop()
+                }
+            },
+            ios() {
+                this.isOriginHei = false;
+            },
+            ios2() {
+                this.isOriginHei = true;
+            },
+            changeFunc(e, item, index) {
+                console.log(e.target.value)
+                console.log(item)
+                this.biao = index
+                this.cityList = []
+                if (e.target.value) {
+                    item.isok = true
+                } else {
+                    item.isok = false
+                }
+
+                // this.arrs[index].customItem = item.customItem;
+                this.watchVal(e.target.value);
+            },
+            chexinB(e) {
+                // console.log(e)
+                this.dto.carBrand = e
+            },
+            //失去焦点
+            shiqu(item) {
+                this.isOriginHei = true;
+                // console.log(item)
+                this.$forceUpdate()
+                let data = {
+                    gid: '1',
+                    partName: item.partName,
+                    total: "1",
+                    sellPrice: '0',
+                    isFactioryPartName: '1'
+                };
+                axios.post(`${baseURL}/vehicle/part/save`, data)
+                    .then(res => {
+                        this.dto.askPricePart4GarageDTOList[this.biao].partId = res.data.data.id
+                    })
+                // item.isok = false
+            },
+            list_click(item) {
+                console.log(this.biao)
+                console.log(item)
+                this.dto.askPricePart4GarageDTOList[this.biao].partId = item.id
+                this.dto.askPricePart4GarageDTOList[this.biao].partName = item.partName
+                this.cityList = []
+            },
+            // 监听值的变化
+            watchVal(value) {
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                }
+                //删除文字  清零
+                if (!value) {
+                    this.cityList = [];
+                    return;
+                }
+                // }
+                this.timer = setTimeout(() => {
+                    const result = [];
+                    // console.log(this.jsonData);
+                    this.PJlist.forEach(val => {
+                        if (val.partName.indexOf(value) > -1) {
+                            result.push(val);
+                        }
+                    });
+                    console.log(result)
+                    this.cityList = result;
+                }, 100);
+
+            },
+
+
+            //提交
+            tijiao() {
+                console.log(this.dto)
+                if(this.dto.supplierList.length < 1){
+                    this.$toast('请先选择汽配商') 
+                    return;
+                }
+                // this.$toast('提交询价成功！')
+                this.dto.partTotalCount = this.dto.askPricePart4GarageDTOList.length
+                // let data = { "code": "1234", "name": "yyyy" };
+                axios.post(`${baseURL}/vehicle/garageAskPrice/askPrice`, this.dto,
+                    { headers: { 'Authorization': window.localStorage.getItem('token') } })
+                    .then(res => {
+                        console.log('res=>', res);
+                        if (res.data.code = 200) {
+                            this.$toast(res.data.data)
+                            sessionStorage.removeItem('data');
+                            this.dto = {
+                                askPricePart4GarageDTOList: [],
+                                carModel: '',//车型
+                                carVin: '',//车架号
+                                carVinPic: '',//车架照片
+                                carPicUrls: [],//车身照
+                                supplierList: [],//汽配商
+                                isMy: false,
+                                carBrand: '',
+                                flag: 0,
+                                oid: '',
+                                gid: '',
+                                partTotalCount: '',//配件数量
+                                fileListd: [],
+                                fileList: [],
+                                billNumber: '',//工单号
+                                status: 0//状态
+                            }
+                        } else {
+                            this.$toast.fail(res.data.message)
+                        }
+                    })
+            },
+            // fiput(i){
+            //     console.log('this.dto)')
+            //     i =  true
+            // },
+            tianjia() {
+                var data = {
+                    partCount: 1,
+                    partId: 0,
+                    partName: "",
+                    partPicUrls: [],
+                    remark: "",
+                    isok: false,
+                }
+                this.dto.askPricePart4GarageDTOList.push(data)
+            },
+            add(index) {
+                console.log(index)
+                this.dto.askPricePart4GarageDTOList.splice(index, 1)
+            },
+
+            beforeDelete(index) {
+                console.log(index)
+                this.fileList.map((c, i) => {
+                    if (c.content == index.content) {
+                        this.dto.carPicUrls.splice(i, 1)
+                        this.dto.fileList.splice(i, 1)
+                    }
+                });
+
+
+            },
+            beforeDeleteC(index) {
+                this.dto.fileListd = []
+                this.carVinPic = ''
+            },
+            beforeDelete2(index) {
+                this.dto.askPricePart4GarageDTOList.map((c, i) => {
+                    c.fileList.map((d, i) => {
+                        console.log(d)
+                        if (d.content == index.content) {
+                            c.partPicUrls.splice(i, 1)
+                            c.fileList.splice(i, 1)
+                        }
+
+                    });
+
+                });
+
+            },
+            afterRead(file) {
+                this.uploadImg(file, 1)
+            },
+            //发送聊天图片
+            afterRealiaotian(file) {
+                // this.uploadImg(file, 1)
+                let formdata1 = new FormData();
+                // 通过append向form对象添加数据,可以通过append继续添加数据
+                //或formdata1.append('file',file);
+                formdata1.append('file', file.file);
+                axios.post('/index/index/upload', formdata1).then((res) => {
+                    console.log(res.data.data)
+                    this.sendmsg = res.data.data.url;
+                    this.last_name = res.data.data.temp_pic ? res.data.data.temp_pic : res.data.data.last_name;
+                    this.send(res.data.data.data_type)
+                    this.sendmsg = ''
+                    this.last_name = ''
+                }).catch((err) => {
+                    console.log(err)
+                })
+            },
+            afterReadd(file) {
+                console.log(file.length)
+                if (file.length >= 2) {
+                    file.map((c, i) => {
+                        this.uploadImg(c, 2)
+                    });
+                } else {
+                    this.uploadImg(file, 2)
+                }
+
+            },
+            afterReaddd(file, detail) {
+                if (file.length >= 2) {
+                    file.map((c, i) => {
+                        this.uploadImg(c, 3)
+                    });
+                } else {
+                    this.uploadImg(file, 3)
+                }
+                // this.uploadImg(file, 3)
+            },
+            uploadImg(file, idx) {
+                console.log(file)
+                // 创建form对象
+                let formdata1 = new FormData();
+                // 通过append向form对象添加数据,可以通过append继续添加数据
+                //或formdata1.append('file',file);
+                formdata1.append('file', file.file);
+                axios.post(`${baseURL}/vehicle/file/uploadPicture`, formdata1)
+                    .then(res => {
+                        // console.log(this.fileListd);
+                        if (res.data.code == 200) {
+                            if (idx == 1) {
+                                this.dto.carVinPic = res.data.data
+                            } else if (idx == 2) {
+                                this.dto.carPicUrls.push(res.data.data)
+                            } else if (idx == 3) {
+                                this.dto.askPricePart4GarageDTOList.map((c, i) => {
+                                    c.fileList.map((d, i) => {
+                                        console.log(d)
+                                        if (d.content == file.content) {
+                                            c.partPicUrls.push(res.data.data)
+                                        }
+                                        // if()
+
+                                    });
+
+                                });
+                                // this.dto.carPicUrls.push(res.data.data)
+                            }
+
+                        } else {
+                            this.$toast(res.data.message)
+                        }
+
+                    })
+
+            },
+            shanchu(index) {
+                this.dto.supplierList.splice(index, 1)
+            },
+            tuijian() {
+                console.log(this.dto.carBrand)
+                let data = {
+                    standard: this.dto.carBrand,
+                    isMy: this.dto.isMy
+                }
+                axios.get(`${baseURL}/vehicle/garageAskPrice/aloneSystemReco`, {
+                    params: (data),
+                    headers: window.localStorage.getItem('token') ? { 'Authorization': window.localStorage.getItem('token') } : {},
+                })
+                    .then(res => {
+                        // console.log(this.fileListd);
+                        if (res.data.code == 200) {
+                            console.log(res)
+                            this.dto.supplierList = res.data.data
+                        } else {
+                            this.$toast(res.data.message)
+                        }
+
+                    })
+            },
+            list() {
+                let data = {
+                    source: 1,
+                    page: 0,
+                    size: 1000,
+                }
+                axios.get(`${baseURL}/vehicle/part/pageListPC`, {
+                    params: (data),
+                    headers: window.localStorage.getItem('token') ? { 'Authorization': window.localStorage.getItem('token') } : {},
+                })
+                    .then(res => {
+                        // console.log(this.fileListd);
+                        if (res.data.code == 200) {
+                            console.log(res)
+                            this.PJlist = res.data.data
+                        } else {
+                            this.$toast(res.data.message)
+                        }
+
+                    })
+            },
+            zhifu() {
+                console.log('asdasdasdasdsa')
+                axios.get(`${baseURL}/vehicle/weixinpay/H5Pay`, {
+                    params: {},
+                    headers: window.localStorage.getItem('token') ? { 'Authorization': window.localStorage.getItem('token') } : {},
+                })
+                    .then(res => {
+                        console.log(res)
+                        window.location.href = res.data.mweb_url;
+                        // console.log(this.fileListd);
+                        // if (res.data.code == 200) {
+                        //     console.log(res)
+                        //     this.PJlist = res.data.data
+                        // } else {
+                        //     this.$toast(res.data.message)
+                        // }
+
+                    })
+            },
+            // 下拉
+            scrolltop() {
+                clearTimeout(sett)
+                var sett = setTimeout(() => {
+                    this.$nextTick(() => {
+                        let list = this.$refs.box;
+                        // console.log(list.scrollHeight)
+                        try {
+
+                            list.scrollTop = list.scrollHeight
+                            // console.log(list.scrollTop)
+                        } catch (e) { }
+                    })
+                }, 100)
+            },
+            getDescribe(id, name) {
+                //   直接调用$router.push 实现携带参数的跳转
+                // history.pushState({ page: 1 }, "title 1", "index");
+                sessionStorage.setItem('data', JSON.stringify(this.dto));
+                sessionStorage.setItem('isok', 'true');
+                location.href = "qipeishang.html";
+                
+                // location.href = "manageDetail.html?gid=" + id + "&name=" + name + "&token=" + this.token;
+            },
+            xuanzhe() {
+                sessionStorage.setItem('data', JSON.stringify(this.dto));
+                sessionStorage.setItem('isok', 'true');
+                location.href = "enquiry_che.html";
+                // location.href = "manageDetail.html?gid=" + id + "&name=" + name + "&token=" + this.token;
+            },
+
+        }
+    })
+</script>
+
+</html>
