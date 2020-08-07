@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>确认订单</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/order.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
+<body>
+    <div id="app" v-cloak>
+            <!-- @click-left="back" -->
+        <van-nav-bar title="确认订单"  :fixed="true" :z-index="999" ></van-nav-bar>
+        <div class="dizi" style="margin-top:46px;">
+            <div class="dizi_h1">
+                <span class="moren">默认</span>
+                <span class="name">{{userInfo.name}}</span>
+                <span class="phone">{{userInfo.phone}}</span>
+            </div>
+            <div class="dizi_h2">
+                <span class="">{{userInfo.province}}</span>
+                <span class="">{{userInfo.city}}</span>
+                <span class="">{{userInfo.district}}</span>
+            </div>
+            <div class="dizi_h3">{{userInfo.address}}
+                <van-icon class="jian" name="arrow" />
+            </div>
+        </div>
+        <!-- 配件 -->
+        <div class="list" v-for="(items,idx) in list" :key="idx">
+            <div class="list_h1">
+                <!-- <img class="shanbiao" src="./img/jia.png" alt=""> -->
+                <span class="qipei_name">{{items.supplierName}}</span>
+                <span class="mone" v-if="items.askPricePartDOS.length >1">￥{{items.totalMoney}}</span>
+            </div>
+            <ul class="list_pei " :class="items.show?'xiala_list':'xiala_list2'">
+                <li v-for="(item,index) in items.askPricePartDOS" :key="index" v-show="index < 4">
+                    <div class="list_a">{{item.partName}} <span
+                            v-if="!items.show">{{items.askPricePartDOS.length >1 && index == '0'?'等':''}}</span>
+                    </div>
+                    <div class="list_b">{{items.askPricePartDOS.length >1 && !items.show?'':item.classify}}</div>
+                    <div class="list_c">{{items.askPricePartDOS.length >1 && !items.show?'':'￥'+item.price}}</div>
+                    <!--  -->
+                    <div class="shu" style="float: right;" @click="items.show = !items.show">
+                        <span>{{items.askPricePartDOS.length >1 && !items.show?'等'+items.askPricePartDOS.length+'件':'×'+item.partCount}}</span>
+                        <van-icon class="jian2" style="float: right;" v-if="index == '0' && items.askPricePartDOS.length >1"
+                            :name="items.show?'arrow-up':'arrow-down'"></van-icon>
+                        <div v-else style="float: right;" class="zhanwei"></div>
+                    </div>
+
+                </li>
+            </ul>
+        </div>
+        <!-- 支付方式 -->
+        <div class="zhifu">
+            <div class="zhifu_a">支付方式</div>
+            <van-radio-group v-model="radio" direction="horizontal" class="xuanxiang">
+                <van-radio checked-color="#07c160" name="0">货到付款</van-radio>
+                <van-radio checked-color="#07c160" name="1">在线支付</van-radio>
+            </van-radio-group>
+        </div>
+        <!--优惠券  -->
+        <div class="youhui">
+                <!-- @click="youhui_show = true" -->
+            <van-cell is-link title="优惠券" value="无可用" @click=""></van-cell>
+            <van-cell center title="积分兑换">
+                <template #right-icon>
+                    <van-switch v-model="checked" size="20" />
+                </template>
+            </van-cell>
+        </div>
+        <!-- 总价格 -->
+        <div class="Zjiage">
+            <van-cell class="zongjiner" title="商品金额" :value="'￥'+zongjia"></van-cell>
+            <van-cell class="zongyunfei" title="总运费" :value="'￥'+expressAmount"></van-cell>
+        </div>
+        <div style="height: 60px"></div>
+        <van-action-sheet v-model="youhui_show" title="标题">
+            <div class="content">内容</div>
+        </van-action-sheet>
+        <!-- 底部 -->
+        <div class="bot">
+            <div class="left lse">
+                <div>应付金额：<span class="jiner"><span class="jin_biao">￥</span>{{(zongjia + expressAmount).toFixed(2)}}</span></div>
+                <div v-if="checked"><span class="youhui_a">&#12288;已优惠</span>：<span class="jin_biao">￥</span>1.20</div>
+            </div>
+            <div class="right">
+                <van-button @click="tijiao" class="bott" color="linear-gradient(to right, #ff6034, #ee0a24)" round type="info">提交订单
+                </van-button>
+            </div>
+        </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo:{},//个人地址信息
+                list: [
+                    // {
+                    //     supplierName: '联系汽配', totalMoney: '330', show: false, askPricePartDOS: [
+                    //         { name: '下摆臂', pai: '二手件', jia: '110', shu: '1' },
+                    //         { name: '中网', pai: '原厂件', jia: '120', shu: '1' },
+                    //         { name: '雨刷', pai: '二手件', jia: '130', shu: '1' },
+                    //         { name: '小摆臂', pai: '品牌件', jia: '140', shu: '1' }
+                    //     ]
+                    // }, {
+                    //     supplierName: '百搭汽配', totalMoney: '330', show: false, askPricePartDOS: [
+                    //         { name: '中网', pai: '原厂件', jia: '120', shu: '1' },
+                    //     ]
+                    // }, {
+                    //     supplierName: '东风汽配', totalMoney: '330', show: false, askPricePartDOS: [
+                    //         { name: '下摆臂', pai: '二手件', jia: '110', shu: '1' },
+                    //         { name: '中网', pai: '原厂件', jia: '120', shu: '1' },
+                    //         { name: '雨刷', pai: '二手件', jia: '130', shu: '1' },
+                    //         { name: '小摆臂', pai: '品牌件', jia: '140', shu: '1' }
+                    //     ]
+                    // },
+                ],
+                checked: false,
+                radio: '0',
+                youhui_show: false,
+                show: false,
+                useScoreTotal:0,//积分
+                expressAmount:0,//快递费用
+                zongjia:0,
+                token:'',
+                askPricePartIds:[],
+                search:''
+            }
+        },
+        created() {
+           
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = getSearchString('token', search); //结果：18
+            localStorage.setItem("token", this.token)
+            var askPricePartIds = getSearchString('askPricePartIds', search); //结果：2
+            this.askPricePartIds = askPricePartIds.split(",")
+            console.log(this.askPricePartIds)
+            this.salesman = getSearchString('salesman', search); //结果：2
+            this.namelist()
+        },
+        mounted() {
+        },
+        methods: {
+            back() {
+                this.$router.go(-1);
+            },
+
+            //下拉配件
+            xiala(show) {
+                show = !show
+                
+                console.log(this.list)
+            },
+            namelist() {
+                let data = {
+                    askPricePartIds:this.askPricePartIds
+                };
+                // console.log(data)
+                axios.post(`${baseURL}/vehicle/garageAskPrice/getUserInfo`, data, 
+                // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
+                // }
+                ) .then(res => {
+                        // console.log(res.data.data)
+                        if (res.data.code == 200) {
+                            var partInfo = res.data.data.partInfo
+                            this.userInfo = res.data.data.userInfo
+                            partInfo.map((c, i) => {
+                                this.$set(c, "show", false);
+                                this.zongjia += c.totalMoney
+                            })
+                            this.list = partInfo
+                            console.log(partInfo)
+                        } else {
+                            _this.$toast(res.data.message)
+                        }
+                    })
+            },
+            tijiao(){
+                let data = {
+                    askPricePartIds:this.askPricePartIds,
+                    expressAmount:this.expressAmount,
+                    paySetting:this.radio,
+                    useScoreTotal:this.useScoreTotal
+                };
+                axios.post(`${baseURL}/vehicle/garageAskPrice/purOrder`, data, 
+                // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
+                // }
+                ) .then(res => {
+                        // console.log(res.data.data)
+                        if (res.data.code == 200) {
+                            this.$toast.success('提交订单成功！')
+                            setTimeout(function (){
+                                window.androidjs.onCallbackIntent("PartOrderActivity")
+                            },"1500")
+                           
+                        } else {
+                            _this.$toast(res.data.message)
+                        }
+                    })
+            },
+        }
+    })
+</script>
+
+</html>

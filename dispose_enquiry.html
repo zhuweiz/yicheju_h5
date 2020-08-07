@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>自动接单</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/pinchzoom.js"></script>
+    <script src="./js/area.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <script src="./js/api.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/dispose_enquiry.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
+
+<body>
+    <div id="app" v-cloak>
+        <van-row>
+            <van-col span="12">订单号: <span style="color: #6A5ACD;">P20120200205001</span></van-col>
+            <van-col span="12">下单时间: <span style="color: #6A5ACD;">08-03 16:43:00</span></van-col>
+        </van-row>
+        <van-row>
+            <van-col span="24">修理厂名称: <span style="color: #6A5ACD;">东莞市迅捷汽车修理厂</span></van-col>
+        </van-row>
+        <!-- 选择 -->
+        <div class="xuanzhe">
+            <van-radio-group v-model="radio" direction="horizontal">
+                <van-radio name="1" icon-size="16px">图片模式</van-radio>
+                <van-radio name="2" icon-size="16px">聊天模式</van-radio>
+            </van-radio-group>
+            <div class="fanzhuan">
+                <img class="fanzhuan_a" @click.stop="fan" src="./img/fanzhuan2.png" alt="">
+                <img class="fanzhuan_a" @click.stop="zheng" src="./img/fanzhuan.png" alt="">
+            </div>
+        </div>
+        <!-- 图片 -->
+        <div class="nei">
+            <img class="qie_a" @click="Playjian" src="./img/qiehuan2.png" alt="">
+            <img class="qie_b" @click="autoPlay" src="./img/qiehuan.png" alt="">
+            <div class="pinch-zoom"><img class="img"  v-for="(item, index) in img" v-show="index===mark" :key="index"  :style="{transform:'rotateZ('+deg+'deg)',zoom:(zoom+'%')}"
+                :src="item"
+                alt=""></div>
+            
+        </div>
+        <!-- 批量添加配件 -->
+        <div class="pilian">批量添加配件</div>
+        <textarea value="" v-model="sendmsg" placeholder="请输入内容" class="sendmsg" ref="send_msg"></textarea>
+        <div class="pei_name"><span style="color: #f56c6c;">请输入配件名称，如有多个配件请用空格隔开，如：</span>大灯 下摆臂 前杠</div>
+        <div class="jiexi">解析配件共：0个配件</div>
+        <div class="kuang"></div>
+        <div style="height: 60px;"></div>
+        <div class="sumit" v-show="isOriginHei">
+            <!-- :disabled="disabled" @click="submitForm" -->
+            <van-button type="danger" size="small" @click="tijiao">发 布</van-button>
+        </div>
+    </div>
+</body>
+<script>
+    $(function(){
+            $('.pinch-zoom').each(function () {
+                new RTP.PinchZoom($(this), {});
+            });  
+});
+    // const baseURL = "http://47.96.248.209:8888"//测试
+    // // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信息
+                list: [
+                ],
+                img:[
+                    'http://vehicle-repairs.oss-cn-hangzhou.aliyuncs.com/test/999/1596614084276%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20200703173314.jpg?Expires=1911974084&OSSAccessKeyId=LTAI4FhBMt2eaMxuMMSCECEm&Signature=gPOQrO9hDl93Eivt9TqXp3%2BC6Mo%3D','http://vehicle-repairs.oss-cn-hangzhou.aliyuncs.com/test/999/15966140744641585639671%281%29.jpg?Expires=1911974074&OSSAccessKeyId=LTAI4FhBMt2eaMxuMMSCECEm&Signature=gRugr5ShspzDgnNOGWmCwHHYbbk%3D'
+                ],
+                isOriginHei: true,
+                checked: false,
+                sendmsg: '',//批量添加配件
+                radio: '1',
+                youhui_show: false,
+                show: false,
+                useScoreTotal: 0,//积分
+                expressAmount: 0,//快递费用
+                zongjia: 0,
+                token: '',
+                askPricePartIds: [],
+                search: '',
+                zoom: 100,
+                deg: 0,
+                mark:0,
+            }
+        },
+        created() {
+
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = getSearchString('token', search); //结果：18
+            localStorage.setItem("token", this.token)
+            this.salesman = getSearchString('salesman', search); //结果：2
+            // this.namelist()
+        },
+        mounted() {
+        },
+        methods: {
+            //翻转
+            fan() {
+                this.deg -= 90;
+                if (this.deg >= 360) {
+                    this.deg = 0
+                }
+            },
+            zheng() {
+                this.deg += 90;
+                if (this.deg >= 360) {
+                    this.deg = 0
+                }
+            },
+            //切换图片
+            autoPlay() {
+                if (this.mark < this.img.length - 1) {
+                    // console.log('123')
+                    this.mark++;
+                }
+            },
+            Playjian() {
+                if (this.mark != 0) {
+                    this.mark--;
+                }
+            },
+            // imgs(){
+            //     $('.pinch-zoom').each(function () {
+            //     new RTP.PinchZoom($(this), {});
+            // });  
+            // },
+            namelist() {
+                let data = {
+                    askPricePartIds: this.askPricePartIds
+                };
+                // console.log(data)
+                axios.post(`${baseURL}/vehicle/garageAskPrice/getUserInfo`, data,
+                    // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
+                    // }
+                ).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        var partInfo = res.data.data.partInfo
+                        this.userInfo = res.data.data.userInfo
+                        partInfo.map((c, i) => {
+                            this.$set(c, "show", false);
+                            this.zongjia += c.totalMoney
+                        })
+                        this.list = partInfo
+                        console.log(partInfo)
+                    } else {
+                        _this.$toast(res.data.message)
+                    }
+                })
+            },
+            tijiao() {
+                let data = {
+                    askPricePartIds: this.askPricePartIds,
+                    expressAmount: this.expressAmount,
+                    paySetting: this.radio,
+                    useScoreTotal: this.useScoreTotal
+                };
+                axios.post(`${baseURL}/vehicle/garageAskPrice/purOrder`, data,
+                    // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
+                    // }
+                ).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.$toast.success('提交订单成功！')
+                        setTimeout(function () {
+                            window.androidjs.onCallbackIntent("PartOrderActivity")
+                        }, "1500")
+
+                    } else {
+                        _this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

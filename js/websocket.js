@@ -123,7 +123,7 @@ function websocketonmessage(e) {
         } else {
             console.log('成功3')
             // console.log(O_o);
-            globalCallback(O_o);
+            // globalCallback(O_o);
         }
     }
 
