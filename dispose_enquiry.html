@@ -28,19 +28,22 @@
 
 <body>
     <div id="app" v-cloak>
-        <van-row>
-            <van-col span="12">订单号: <span style="color: #6A5ACD;">P20120200205001</span></van-col>
-            <van-col span="12">下单时间: <span style="color: #6A5ACD;">08-03 16:43:00</span></van-col>
+        <van-nav-bar @click-left="back" title="自动接单" left-arrow :fixed="true" :z-index="999"></van-nav-bar>
+        <van-row style="padding-top:46px;">
+            <van-col span="12">订单号: <span style="color: #6A5ACD;">{{ListNow.billNumber}}</span></van-col>
+            <van-col span="12">下单时间: <span style="color: #6A5ACD;">{{ListNow.createdTime}}</span></van-col>
         </van-row>
         <van-row>
-            <van-col span="24">修理厂名称: <span style="color: #6A5ACD;">东莞市迅捷汽车修理厂</span></van-col>
+            <!-- @click="quxiao" -->
+            <van-col span="24">修理厂名称: <span style="color: #6A5ACD;">{{ListNow.garageName}}</span>
+            </van-col>
         </van-row>
         <!-- 选择 -->
         <div class="xuanzhe">
-            <van-radio-group v-model="radio" direction="horizontal">
+            <!-- <van-radio-group v-model="radio" direction="horizontal">
                 <van-radio name="1" icon-size="16px">图片模式</van-radio>
                 <van-radio name="2" icon-size="16px">聊天模式</van-radio>
-            </van-radio-group>
+            </van-radio-group> -->
             <div class="fanzhuan">
                 <img class="fanzhuan_a" @click.stop="fan" src="./img/fanzhuan2.png" alt="">
                 <img class="fanzhuan_a" @click.stop="zheng" src="./img/fanzhuan.png" alt="">
@@ -48,35 +51,49 @@
         </div>
         <!-- 图片 -->
         <div class="nei">
-            <img class="qie_a" @click="Playjian" src="./img/qiehuan2.png" alt="">
-            <img class="qie_b" @click="autoPlay" src="./img/qiehuan.png" alt="">
-            <div class="pinch-zoom"><img class="img"  v-for="(item, index) in img" v-show="index===mark" :key="index"  :style="{transform:'rotateZ('+deg+'deg)',zoom:(zoom+'%')}"
-                :src="item"
-                alt=""></div>
-            
+            <img class="qie_a" @click.stop="Playjian" src="./img/qiehuan2.png" alt="">
+            <img class="qie_b" @click.stop="autoPlay" src="./img/qiehuan.png" alt="">
+            <div class="pinch-zoom"><img class="img" v-for="(item, index) in ListNow.picList" v-show="index===mark"
+                    :key="index" :style="{transform:'rotateZ('+deg+'deg)',zoom:(zoom+'%')}" :src="item" alt=""></div>
+
         </div>
         <!-- 批量添加配件 -->
         <div class="pilian">批量添加配件</div>
-        <textarea value="" v-model="sendmsg" placeholder="请输入内容" class="sendmsg" ref="send_msg"></textarea>
+        <textarea value="" @keyup.space="jiexi" @focus='ios' @blur="jiexi(2)" v-model="textarea" placeholder="请输入内容"
+            class="sendmsg" ref="send_msg"></textarea>
         <div class="pei_name"><span style="color: #f56c6c;">请输入配件名称，如有多个配件请用空格隔开，如：</span>大灯 下摆臂 前杠</div>
-        <div class="jiexi">解析配件共：0个配件</div>
-        <div class="kuang"></div>
+        <div class="jiexi">
+            <div class="left">解析配件共：{{szpeijian.length}}个配件</div>
+            <div class="right jjxx" @click="jiexi">解析</div>
+        </div>
+        <!-- <div class="kuang"> -->
+        <van-row class="kuang">
+            <van-col span="8" class="ddv" v-for="(item,index) in szpeijian" :key="'item'+index">
+                <div class=" cs">{{item.partName}}</div>
+            </van-col>
+        </van-row>
+        <!-- </div> -->
         <div style="height: 60px;"></div>
         <div class="sumit" v-show="isOriginHei">
             <!-- :disabled="disabled" @click="submitForm" -->
             <van-button type="danger" size="small" @click="tijiao">发 布</van-button>
         </div>
+        <van-popup v-model="isshow" :close-on-click-overlay="false">
+            <div class="chenggong">发布成功！</div>
+            <div class="duilei">剩余队列数：<span style="color: red">{{shuliang}}</span></div>
+            <div class="xuanzetui">
+                <div @click="back" class="tuichu bbt">退出</div>
+                <div v-if="shuliang != 0" @click="chuli" class="chuli bbt">处理下一单</div>
+            </div>
+        </van-popup>
     </div>
 </body>
 <script>
-    $(function(){
-            $('.pinch-zoom').each(function () {
-                new RTP.PinchZoom($(this), {});
-            });  
-});
-    // const baseURL = "http://47.96.248.209:8888"//测试
-    // // const baseURL = "http://47.99.212.29:8888"//正式
-
+    $(function () {
+        $('.pinch-zoom').each(function () {
+            new RTP.PinchZoom($(this), {});
+        });
+    });
     var vue1 = new Vue({
         el: "#app",
         data() {
@@ -85,12 +102,10 @@
                 userInfo: {},//个人地址信息
                 list: [
                 ],
-                img:[
-                    'http://vehicle-repairs.oss-cn-hangzhou.aliyuncs.com/test/999/1596614084276%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20200703173314.jpg?Expires=1911974084&OSSAccessKeyId=LTAI4FhBMt2eaMxuMMSCECEm&Signature=gPOQrO9hDl93Eivt9TqXp3%2BC6Mo%3D','http://vehicle-repairs.oss-cn-hangzhou.aliyuncs.com/test/999/15966140744641585639671%281%29.jpg?Expires=1911974074&OSSAccessKeyId=LTAI4FhBMt2eaMxuMMSCECEm&Signature=gRugr5ShspzDgnNOGWmCwHHYbbk%3D'
-                ],
                 isOriginHei: true,
+                isshow: false,
                 checked: false,
-                sendmsg: '',//批量添加配件
+                textarea: '',//批量添加配件
                 radio: '1',
                 youhui_show: false,
                 show: false,
@@ -99,10 +114,13 @@
                 zongjia: 0,
                 token: '',
                 askPricePartIds: [],
+                szpeijian: [],
+                ListNow: {},
+                shuliang: 0,
                 search: '',
                 zoom: 100,
                 deg: 0,
-                mark:0,
+                mark: 0,
             }
         },
         created() {
@@ -123,13 +141,77 @@
             var search = window.location.search;
             this.search = window.location.href
             this.token = getSearchString('token', search); //结果：18
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3NzE2NDc3fQ.izfWQ90UqrXQY9wuCMFhrurtxJhCibtaGxfVB0hPKrdJiIChpAE9CbtAhdFzH7UmpumES9UTiri48VEgUZmXwA')
             localStorage.setItem("token", this.token)
-            this.salesman = getSearchString('salesman', search); //结果：2
-            // this.namelist()
+
+            this.namelist()
         },
         mounted() {
+            // window.addEventListener("popstate", function (e) {
+            //     // alert("我监听到了浏览器的返回按钮事件啦");
+            //     this.quxiao()
+            //     // 根据自己的需求实现自己的功能
+            // }, false);
         },
         methods: {
+            back() {
+                this.quxiao()
+                window.androidjs.onCallbackIntent("Finish")
+            },
+            //退出弹窗
+            tuichu() {
+                this.isshow = false
+            },
+            //解析配件
+            jiexi(row) {
+                // console.log('546')
+                var _this = this;
+
+                var peijian = this.textarea.trim().split(/\s+/);
+                var gid = this.ListNow.gid;
+                // console.log(gid);
+                var pj = [];
+                if (row != 2) {
+                    _this.isOriginHei = true;
+                    if (peijian == "") {
+                        return this.$toast('请先输入配件!');
+                    }
+                } else {
+                    _this.isOriginHei = true;
+                    if (peijian == "") {
+                        return;
+                    }
+                }
+                peijian.forEach(function (v, index) {
+                    pj.push({
+                        partName: v,
+                        gid: gid,
+                        isFactioryPartName: 1,
+                        sellPrice: 0,
+                        total: 1
+                    });
+                });
+                this.szpeijian = pj;
+            },
+            ios() {
+                this.isOriginHei = false;
+            },
+            quxiao() {
+                // let data = {
+                //     oid: 146
+                //     // oid: this.ListNow.oid
+                // };
+                var oid = this.ListNow.oid
+                axios.post(`${baseURL}/vehicle/garageAskPrice/change/AskQueue/` + oid,
+                ).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        console.log(res)
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
             //翻转
             fan() {
                 this.deg -= 90;
@@ -145,7 +227,7 @@
             },
             //切换图片
             autoPlay() {
-                if (this.mark < this.img.length - 1) {
+                if (this.mark < ListNow.picList.length - 1) {
                     // console.log('123')
                     this.mark++;
                 }
@@ -160,52 +242,67 @@
             //     new RTP.PinchZoom($(this), {});
             // });  
             // },
+            chuli() {
+                this.textarea = ''
+                this.szpeijian = []
+
+                this.namelist()
+                this.isshow = false
+            },
             namelist() {
-                let data = {
-                    askPricePartIds: this.askPricePartIds
-                };
-                // console.log(data)
-                axios.post(`${baseURL}/vehicle/garageAskPrice/getUserInfo`, data,
-                    // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
-                    // }
-                ).then(res => {
-                    // console.log(res.data.data)
-                    if (res.data.code == 200) {
-                        var partInfo = res.data.data.partInfo
-                        this.userInfo = res.data.data.userInfo
-                        partInfo.map((c, i) => {
-                            this.$set(c, "show", false);
-                            this.zongjia += c.totalMoney
-                        })
-                        this.list = partInfo
-                        console.log(partInfo)
-                    } else {
-                        _this.$toast(res.data.message)
-                    }
+                axios.get(`${baseURL}/vehicle/garageAskPrice/handAskInfo`, {
+                    params: {},
                 })
+                    .then(res => {
+                        console.log(res)
+                        if (res.data.code == 200) {
+                            this.ListNow = res.data.data;
+                            if (this.ListNow.createdTime) {
+                                this.ListNow.createdTime = this.ListNow.createdTime.substr(-14);
+                                // this.ListNow.createdTime = this.ListNow.createdTime.substring(0, 11);
+                            }
+                        } else {
+                            this.$toast(res.data.message)
+                        }
+
+
+                    })
             },
             tijiao() {
-                let data = {
-                    askPricePartIds: this.askPricePartIds,
-                    expressAmount: this.expressAmount,
-                    paySetting: this.radio,
-                    useScoreTotal: this.useScoreTotal
-                };
-                axios.post(`${baseURL}/vehicle/garageAskPrice/purOrder`, data,
-                    // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
-                    // }
-                ).then(res => {
-                    // console.log(res.data.data)
-                    if (res.data.code == 200) {
-                        this.$toast.success('提交订单成功！')
-                        setTimeout(function () {
-                            window.androidjs.onCallbackIntent("PartOrderActivity")
-                        }, "1500")
+                var _this = this;
+                var shul = this.szpeijian.length;
+                console.log(shul - 1);
+                if (this.szpeijian.length == 0) {
+                    return this.$toast('请先输入配件');
+                }
+                for (const i in this.szpeijian) {
+                    var data = this.szpeijian[i]
+                    axios.post(`${baseURL}/vehicle/part/save`, this.szpeijian[i],
+                    ).then(e => {
+                        if (e.data.code == 200) {
+                            let dot = {
+                                askPriceId: this.ListNow.askPriceIdList,
+                                askPricePartDTO: {
+                                    gid: this.ListNow.gid,
+                                    partId: e.data.data.id,
+                                    price: 0,
+                                    partName: e.data.data.partName,
+                                    partCount: 1
+                                },
+                                oid: this.ListNow.oid
+                            };
 
-                    } else {
-                        _this.$toast(res.data.message)
-                    }
-                })
+                            axios.post(`${baseURL}/vehicle/supplier/askPrice/saveHandAskPart`, dot,
+                            ).then(res => {
+                                if (i == shul - 1) {
+                                    this.shuliang = res.data.data
+                                    this.isshow = true;
+                                }
+                            });
+                        }
+                    });
+                }
+
             },
         }
     })

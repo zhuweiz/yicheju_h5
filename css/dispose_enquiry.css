@@ -25,7 +25,8 @@ body{
     margin-left: 10px;
 }
 .fanzhuan{
-    float: left;
+    /* float: left; */
+    text-align: center;
 }
 .fanzhuan_a{
     width: 24px;
@@ -91,13 +92,24 @@ body{
     padding: 0 10px;
 }
 .jiexi{
+    overflow: hidden;
     font-size: 12px;
     padding: 0 10px;
+    margin: 3px 0;
+    height: 25px;
 }
+.jjxx{
+    padding: 2px 20px;
+    border: 1px solid #0d906e;
+    color: #0d906e;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
 .kuang{
     /* width: 100%; */
     margin: 0 10px;
-    height: 150px;
+    height: 180px;
     border: 1px solid #999;
 }
 .img{
@@ -126,4 +138,62 @@ body{
 .pinch-zoom{
     width: 100%;
     height: 300px;
+}
+.deng {
+    border: 1px solid #666;
+  
+    margin-top: 5px;
+    min-height: 250px;
+  }
+  .ddv {
+      border-bottom: 1px solid #999;
+      border-right: 1px solid #999;
+  }
+  .ddv:nth-child(3n+3) {
+    border-right:none;
+}
+  .cs {
+      text-align: left;
+      color: #333;
+    /* //   margin-left: 3px; */
+    font-size: 12px;
+    line-height: 25px;
+    min-height: 25px;
+  }
+  /* 弹窗 */
+  .van-popup{
+    height: 160px;
+    width: 65%;
+}
+.chenggong{
+    margin-top: 10px;
+    font-size: 20px;
+    text-align: center;
+    line-height: 40px;
+    color: #6A5ACD;
+}
+.duilei{
+    font-size: 16px;
+    text-align: center;
+    margin-top: 10px;
+}
+.xuanzetui{
+    margin-top: 30px;
+    text-align: center;
+}
+.bbt{
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 10px;
+    margin: 0 10px;
+    
+}
+.tuichu{
+    color: #07c160;
+    border: 1px solid #07c160;
+}
+.chuli{
+    color: red;
+    border: 1px solid red;
 }

@@ -40,7 +40,7 @@
                 <span class="">{{userInfo.district}}</span>
             </div>
             <div class="dizi_h3">{{userInfo.address}}
-                <van-icon class="jian" name="arrow" />
+                <!-- <van-icon class="jian" name="arrow" /> -->
             </div>
         </div>
         <!-- 配件 -->
@@ -80,9 +80,10 @@
         <div class="youhui">
                 <!-- @click="youhui_show = true" -->
             <van-cell is-link title="优惠券" value="无可用" @click=""></van-cell>
-            <van-cell center title="积分兑换">
+            <van-cell center :title="'积分兑换(当前积分'+(userInfo.score?userInfo.score:'0')+')'">
                 <template #right-icon>
-                    <van-switch v-model="checked" size="20" />
+                    <div style="color: red;margin-right: 10px;" v-if="checked">-￥{{userInfo.score?((userInfo.score / 100).toFixed(2)):'0'}}</div>
+                    <van-switch v-model="checked" :disabled="userInfo.score == null" @click="jifen" size="20" />
                 </template>
             </van-cell>
         </div>
@@ -98,8 +99,11 @@
         <!-- 底部 -->
         <div class="bot">
             <div class="left lse">
-                <div>应付金额：<span class="jiner"><span class="jin_biao">￥</span>{{(zongjia + expressAmount).toFixed(2)}}</span></div>
-                <div v-if="checked"><span class="youhui_a">&#12288;已优惠</span>：<span class="jin_biao">￥</span>1.20</div>
+                <div>应付金额：<span class="jiner"><span class="jin_biao">￥</span >
+                    <span v-if="checked">{{((zongjia + expressAmount)-(userInfo.score / 100)).toFixed(2)}}</span>
+                    <span v-else>{{((zongjia + expressAmount)).toFixed(2)}}</span>
+                </span></div>
+                <div v-if="checked"><span class="youhui_a">&#12288;已优惠</span>：<span class="jin_biao">￥</span>{{userInfo.score?((userInfo.score / 100).toFixed(2)):'0'}}</div>
             </div>
             <div class="right">
                 <van-button @click="tijiao" class="bott" color="linear-gradient(to right, #ff6034, #ee0a24)" round type="info">提交订单
@@ -171,8 +175,7 @@
             localStorage.setItem("token", this.token)
             var askPricePartIds = getSearchString('askPricePartIds', search); //结果：2
             this.askPricePartIds = askPricePartIds.split(",")
-            console.log(this.askPricePartIds)
-            this.salesman = getSearchString('salesman', search); //结果：2
+            // console.log(this.askPricePartIds)
             this.namelist()
         },
         mounted() {
@@ -181,7 +184,11 @@
             back() {
                 this.$router.go(-1);
             },
+            jifen(){
+                if(this.checked){
 
+                }
+            },
             //下拉配件
             xiala(show) {
                 show = !show
@@ -191,10 +198,11 @@
             namelist() {
                 let data = {
                     askPricePartIds:this.askPricePartIds
+                    // askPricePartIds:['1237']
                 };
                 // console.log(data)
                 axios.post(`${baseURL}/vehicle/garageAskPrice/getUserInfo`, data, 
-                // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
+                // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3NzUzMTg3fQ.f4FBn-YtftfDdgcKB9KQtxqF5vax5gSi8UxxN5C-rJC2WKwXaeJTaOjwZeU4mXgOWVWEW3DThufgy9-ZgJt7dg' } 
                 // }
                 ) .then(res => {
                         // console.log(res.data.data)
@@ -208,7 +216,7 @@
                             this.list = partInfo
                             console.log(partInfo)
                         } else {
-                            _this.$toast(res.data.message)
+                            this.$toast(res.data.message)
                         }
                     })
             },
@@ -217,8 +225,9 @@
                     askPricePartIds:this.askPricePartIds,
                     expressAmount:this.expressAmount,
                     paySetting:this.radio,
-                    useScoreTotal:this.useScoreTotal
+                    useScoreTotal:this.checked?this.userInfo.score:'0'
                 };
+                console.log(data)
                 axios.post(`${baseURL}/vehicle/garageAskPrice/purOrder`, data, 
                 // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
                 // }
@@ -231,7 +240,7 @@
                             },"1500")
                            
                         } else {
-                            _this.$toast(res.data.message)
+                            this.$toast(res.data.message)
                         }
                     })
             },

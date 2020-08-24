@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>确认订单</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/https.js"></script>
+    <script src="js/qs.min.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/liaotian.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
+
+<body>
+    <div id="app" v-cloak>
+        <van-sidebar v-model="activeKey" @change="onChange">
+            <van-sidebar-item title="标签名1标签名1标签名1标签名1" ></van-sidebar-item>
+            <van-sidebar-item title="标签名2" ></van-sidebar-item>
+            <van-sidebar-item title="标签名3" ></van-sidebar-item>
+        </van-sidebar>
+        <div class="liaotian">
+            <div class="dingdan" @click="dingdan">
+                <div class="name"><span>{{list_show.carNo}}</span> <span class="mge">{{list_show.standard}}</span> 
+                    <van-icon :name="DDshow?'arrow-down':'arrow-up'" class="right ico" />
+    
+                </div>
+                <div class="name_a">{{list_show.askPriceParts}}</div>
+                
+            </div>
+            <div class="liebiao" v-show="DDshow">
+                <div v-for="item in list" :key="item" class="lie_car" @click="xuanze(item)"><span class="ddcar">{{item.carNo}}</span><span class="mge">{{item.carBrand}}</span></div>
+            </div>
+
+
+       <!-- 聊天发送 -->
+            <div class="tianjia">
+                <img class="jiap left" src="./img/jianpan.png" alt="">
+                <textarea value="" v-model="sendmsg" placeholder="请输入内容" class="sendmsg" ref="send_msg"></textarea>
+                <van-button class="fasong" type="info" @click="send(1)">发送</van-button>
+                <van-uploader class="right" accept="'image/*'" :after-read="afterRealiaotian">
+                    <img class="jia" src="./img/jia.png" alt="">
+                </van-uploader>
+            </div>
+
+        </div>
+        <!--  -->
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信息
+                list: [
+                ],
+                list_show:{},
+                sendmsg:'',
+                DDshow:false,
+                activeKey: 0,
+            }
+        },
+        created() {
+
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = getSearchString('token', search); //结果：18
+            localStorage.setItem("token", this.token)
+            var askPricePartIds = getSearchString('askPricePartIds', search); //结果：
+            // console.log(this.askPricePartIds)
+            this.namelist()
+            this.list_qipei()
+        },
+        mounted() {
+        },
+        methods: {
+            back() {
+                this.$router.go(-1);
+            },
+            onChange(index) {
+                console.log(index)
+                // this.notify({ type: 'primary', message: index });
+            },
+            dingdan(){
+                this.DDshow = !this.DDshow
+            },
+            xuanze(item){
+                this.list_show = item
+                this.DDshow = !this.DDshow
+            },
+            send() {
+            },
+            afterRealiaotian(){
+
+            },
+            namelist() {
+                axios.get(`${baseURL}/vehicle/garageAskPrice/askOrderList`, {
+                    params: {},
+                     headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3ODE3MTQyfQ.TCvqv4zZjxXOaPfJkHAkAz3rcoJP9uJ4D3fEXpbStgI4tYIGUCAtKA257IxeShC4wHJxPDyM2HJTtz2-0HGYuw' }   
+                })
+                    .then(res => {
+                        console.log(res)
+                        if (res.data.code == 200) {
+                            this.list = res.data.data;
+                            if(this.list){
+                                this.list_show = this.list[0]
+                            }
+                            console.log(this.list_show)
+                        } else {
+                            this.$toast(res.data.message)
+                        }
+
+
+                    })
+            },
+            list_qipei(){
+                const data = {
+					user_id: 2526
+				};
+                    var parmas = window.Qs.stringify(data);
+                    axios.post('/index/index', data).then((res) => {
+                        console.log(res)
+                    }).catch((err) => {
+                        console.log(err)
+                    })
+            },
+            tijiao() {
+                let data = {
+                    askPricePartIds: this.askPricePartIds,
+                    expressAmount: this.expressAmount,
+                    paySetting: this.radio,
+                    useScoreTotal: this.checked ? this.userInfo.score : '0'
+                };
+                console.log(data)
+                axios.post(`${baseURL}/vehicle/garageAskPrice/purOrder`, data,
+                    // { headers: { 'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk3MzkwMTA5fQ.HDyjYau3NmYWJD9w0fAPOY-qvN8BRdue4LcNPDaxdgmIkw5TwHB3cOFNOhXSlyP-qEio176tRB81cqgSDfz-Cw' } 
+                    // }
+                ).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.$toast.success('提交订单成功！')
+                        setTimeout(function () {
+                            window.androidjs.onCallbackIntent("PartOrderActivity")
+                        }, "1500")
+
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

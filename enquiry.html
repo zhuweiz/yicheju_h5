@@ -255,7 +255,6 @@
                 textarea: '',
                 isshow: false,
                 imgs: false,
-
                 beizhu: '',
                 sendmsg: '',
                 screenHeight: document.body.clientHeight,  // 这里是给到了一个默认值 （这个很重要），
@@ -524,8 +523,8 @@
             },
             getUserInfo(phone) {
                 const data = {
-                    // createdBy: this.dto.createdBy,
-                    createdBy: 2526,//2526/1616
+                    createdBy: this.dto.createdBy,
+                    // createdBy: 1616,//2526/1616
                 };
                 // this.dto.createdBy
                 // var parmas = window.Qs.stringify(data);
@@ -597,9 +596,15 @@
                     )
                         .then(res => {
                             if (res.data.code == 200) {
-                                console.log(res.data.data)
+
                                 var data = {}
                                 data = JSON.parse(res.data.data)
+                                console.log(data.words_result.length)
+                                if (data.words_result.length == 0) {
+                                    this.$toast('车架号识别失败')
+                                    return
+                                }
+
                                 this.dto.carVin = data.words_result[0].words
                                 axios.get(`${baseURL}/vehicle/order/carInfo/vin`, {
                                     params: { vin: data.words_result[0].words },
@@ -610,6 +615,12 @@
                                         if (res.data.code == 200) {
                                             var list_data = {}
                                             list_data = JSON.parse(res.data.data)
+                                            // console.log(list_data)
+                                            if (list_data.result.msg != '成功') {
+                                                _this.imgs = true
+                                                this.$toast('查询不成功，请核对车架号！')
+                                                return
+                                            }
                                             this.dto.carModel = list_data.result.data.data.brand_name + list_data.result.data.data.model_name
                                             this.dto.carBrand = list_data.result.data.data.brand_name
 
@@ -677,6 +688,13 @@
                         if (res.data.code == 200) {
                             var list_data = {}
                             list_data = JSON.parse(res.data.data)
+                            if (list_data.result.msg != '成功') {
+                                if(_this.dto.carVinPic != ''){
+                                    _this.imgs = true
+                                }
+                                this.$toast('查询不成功，请核对车架号！')
+                                return
+                            }
                             this.dto.carModel = list_data.result.data.data.brand_name + list_data.result.data.data.model_name
                             this.dto.carBrand = list_data.result.data.data.brand_name
 
@@ -806,7 +824,7 @@
                         this.$toast('请先选择配件')
                         return;
                     }
-                }else{
+                } else {
                     this.dto.askPricePart4GarageDTOList = []
                 }
                 if (this.dto.supplierList.length < 1) {

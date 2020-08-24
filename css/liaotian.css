@@ -1,0 +1,131 @@
+html, body{
+     margin:0; height:100%;
+     font-size: 14px;
+ }
+#app{
+    height: 100%;
+    margin:0;   
+}
+.van-sidebar{
+    height: 100%;
+    width: 25%;
+    border-right: 2px solid #f5f5f5;
+    float: left;
+    box-sizing: border-box;
+}
+
+.van-sidebar-item{
+    background: #fff;
+    padding: 12px 12px;
+    border-bottom: 2px solid #f5f5f5;
+}
+.van-sidebar-item--select{
+    background: #f5f5f5;
+}
+.liaotian{
+    width: 75%;
+    float: right;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    right: 0;
+}
+.dingdan{
+    height: 46px;
+background: #D3D3D3;
+position: relative;
+}
+.ico{
+    margin-top: 2px;
+}
+.name{
+    line-height: 24px;
+    padding: 0 12px 0 16px;
+}
+.name_a{
+    padding: 0 20px 0 24px;
+    color: #00BFFF;
+    font-size: 13px;
+    overflow: hidden;
+text-overflow:ellipsis;
+white-space: nowrap;
+}
+.liebiao{
+    border-top: none;
+    background: #f5f5f5;
+    border: 2px solid  #D3D3D3;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0PX 12PX;
+   position: absolute;
+   top: 0;
+   right: 0;
+   color: #333;
+   margin-top: 46px;
+   overflow-y: auto;
+   max-height: 180px;
+}
+.lie_car{
+    margin: 10px 0;
+}
+.mge{
+    margin-left: 10px;
+}
+.ddcar{
+    display: inline-block;
+    width: 85px;
+}
+/* 聊天 */
+.tianjia{
+    position: absolute;
+    bottom: 0;
+    padding: 0 6px;
+    border-top: 1px solid #ebedf0;
+    clear:both;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    font-size: 16px;
+    font-weight: 550;
+}
+.jiap{
+    vertical-align: middle;
+    width: 25px;
+    height: 25px;
+    margin-top: 14px;
+}
+input{text-indent:5px;}
+.sendmsg {
+    width: 50%;
+    /* border: none; */
+    border:1px solid #ebedf0;
+    height: 30px;
+    line-height: 30px;
+    font-size: 12px;
+    -webkit-appearance:none;
+    /*border-bottom: 1px solid #e7e7e7;*/
+    /* margin: auto; */
+    resize: none;
+    float: left;
+    margin-left: 5px;
+    display:inline-block;
+    outline: none;
+    margin-top: 8px;
+}
+.fasong{
+    float: right;
+    width: 60px;
+    border-radius: 5px;
+    height: 36px;
+    margin-top: 8px;
+    padding: 0 10px
+}
+.van-uploader{
+    margin-right: 5px;
+}
+.jia{
+    margin-left: 5px;
+    vertical-align: middle;
+    width: 25px;
+    height: 25px;
+}
