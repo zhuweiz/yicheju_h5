@@ -1,0 +1,154 @@
+body,html{
+  height: 100%;
+  overflow-y: auto;
+}
+.hed_lis {
+    position: fixed;
+    top:46px;
+    width: 100%;
+    /* position: relative; */
+    height: 45px;
+    background: #fff;
+    z-index: 99;
+    border-bottom: 1px solid #ebedf0;
+  }
+  .hhcc {
+    float: left;
+    font-size: 14px;
+    color: #646566;
+    width: 20%;
+    text-align: center;
+    line-height: 45px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ord_lis{
+    overflow: hidden;
+    height: 100%;
+    background: #ebedf0;
+  }
+  .hua {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    margin-bottom: 5px;
+    width: 46px;
+    text-align: center;
+    margin-left: -23px;
+    height: 3px;
+    z-index: 1;
+    background-color: #ee0a24;
+    border-radius: 1.5px;
+  }
+  .order_list:nth-of-type(n + 2) {
+    margin-top: 10px;
+  }
+  .order_list {
+    margin: 0 10px;
+    background: #fff;
+    padding: 0 10px;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .ordrt_h1 {
+    overflow: hidden;
+    color: #666;
+    font-size: 14px;
+    padding: 10px 0px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .ordrt_h3{
+    overflow: hidden;
+    font-size: 14px;
+    margin: 5px 0 ;
+    color: #6A5ACD;
+    
+  }
+  .ordrt_h4{
+    overflow: hidden;
+    font-size: 14px;
+    padding: 5px 0 12px 0 ;
+    color: #6A5ACD;
+    border-bottom: 1px solid #f5f5f5;
+    
+  }
+  .ttbb{
+    font-size: 14px;
+    
+    vertical-align: bottom;
+  }
+  .name_Z{
+    margin-left: 8px;
+    
+  }
+  .chepai{
+    background: #00008B;
+    color: #fff;
+    
+  }
+  .zhifu {
+    /* // display: inline-block; */
+    font-size: 12px;
+    padding: 0 6px;
+    color: #b22222;
+    border: 1px solid #b22222;
+    border-radius: 12px;
+    float: right;
+    line-height: 20px;
+    height: 22px;
+    font-weight: bold;
+  }
+  .biaoti_ord {
+    height: 32px;
+    font-size: 14px;
+  }
+  .ordrt_h2 {
+    /* //   height: 65px; */
+    margin-top: 15px;
+    padding-bottom: 20px;
+    overflow: hidden;
+  }
+  .order_img {
+    height: 75px;
+    width: 65px;
+  }
+  .jianshu{
+    font-size: 14px;
+    
+  }
+  .fuwu{
+    margin: 8px 0;
+    font-size: 10px;
+    color: #87CEEB;
+    border: 1px solid #87CEEB;
+    display: inline-block;
+    line-height: 10px;
+    padding: 1px;
+    border-radius: 2px;
+  }
+  .shanchu {
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .order_name {
+    height: 75px;
+    position: relative;
+    font-size: 12px;
+    width: 78%;
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 16px;
+  }
+  .jiance {
+    min-height: 11px;
+    margin-top: 2px;
+    font-size: 7px;
+    border: 1px solid #4169e1;
+    display: inline-block;
+    color: #4169e1;
+    line-height: 11px;
+    border-radius: 2px;
+  }

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>订单详情</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/quanbu_details.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
+
+<body>
+    <!-- v-cloak -->
+    <div id="app" style="background: #ebedf0;height: 100%;">
+        <div class="bianti_a">
+            <van-icon @click="back" class="fanhui" name="arrow-left"></van-icon>
+            <span style="vertical-align: middle">订单详情</span>
+        </div>
+
+        <div class="biao_ti" style="padding-top:46px;  position: relative;background: #ebedf0;">
+            <img class="beijintu" v-if="list.status == 0 || list.status == 1" src="img/dengdai.png" alt />
+            <img class="beijintu" v-if="list.status == -1" src="img/quxiao.png" alt />
+            <img class="beijintu" v-if="list.status == 4" src="img/wancheng.png" alt />
+            <div class="zidong">
+                <div class="zidong_a">
+                    <span v-if="list.status == 1">待预约</span>
+                    <span v-if="list.status == 0">订单待付款</span>
+                    <span v-if="list.status == -1">订单已取消</span>
+                    <span v-if="list.status == 4">订单已完成</span>
+                </div>
+                <div class="zidong_b" v-if="list.status == 0">还剩4时18分自动取消订单</div>
+            </div>
+
+            <div class="peisong">
+                <div class="lis_h1">
+                    <img class="menbiao left" src="img/menbiao.jpg" alt />
+                    <span class="song left">配送至门店</span>
+
+                </div>
+                <div class="lis_h2">{{list.garageName}}</div>
+                <div class="lis_h3">
+                    <img class="order_img left" src="img/mendian.png" alt />
+                    <div class="left order_name">
+                        <div class="biaoti_ord">{{list.areaDetail}}</div>
+                        <div class="jiance" v-if="list.carNo">{{list.carNo}}</div>
+                        <div style="width: 77px;height: 22px; margin: 6px 0;" v-else></div>
+                        <div class="jianshu">
+                            <span class style="color: #999;">{{list.receiver}}</span>
+                            <span style="margin-left: 25px;">{{list.tel}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lis_h4">
+                    <img class="menbiao left" src="img/chebiao.jpg" alt />
+                    <span class="song left">{{list.carModel}}</span>
+                    <!-- <span class="rigth"></span> -->
+                </div>
+                <!-- <div class="lis_h3" style="color: #666;">2008款 2.0L 无极 标准版</div> -->
+            </div>
+
+            <div class="peisong2">
+                <div class="lis_h1">
+                    <span class="song2 left">商品</span>
+                    <img class="anzhuang left" src="img/anzhuang.jpg" alt />
+                </div>
+                <div class="liss_c" v-for="(item,idx) in list.goods" :key="idx">
+                    <img class="order_img left" :src="item.attrImg" alt />
+                    <div class="left order_name">
+                        <div class="yichu_c">{{item.title}}</div>
+                        <div class="jianshu2">
+                            <span style="color: #000;font-weight: bold;">￥{{item.price}}</span>
+                            <span class="right" style="margin-left: 25px;color: #666;">x{{item.goodsNum}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lis_h4" v-if="list.services">
+                    <span class="song left">服务</span>
+                    <!-- <span class="rigth"></span> -->
+                </div>
+                <div class="liss_c" v-for="(item,index) in list.services" :key="'c'+index">
+                    <img class="order_img left" src="img/sp.jpg" alt />
+                    <div class="left order_name">
+                        <div class="yichu_c">{{item.title}}</div>
+                        <div class="jianshu2">
+                            <span style="color: #000;font-weight: bold;">￥{{item.price}}</span>
+                            <span class="right" style="margin-left: 25px;color: #666;">x{{item.goodsNum}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dingdan_bianhao">
+            <div class="din_a">
+                <span class="ff_c">订单编号：</span>
+                <span>{{list.orderNumber}}</span>
+            </div>
+            <div class="din_a">
+                <span class="ff_c">订单时间：</span>
+                <span>{{list.createTime}}</span>
+            </div>
+            <div class="din_a">
+                <span class="ff_c">支付方式：</span>
+                <span>{{list.orderPaySetting == 1?'线上支付':'线下支付'}}</span>
+            </div>
+            <div class="din_a">
+                <span class="ff_c">配送方式：</span>
+                <span>暂无</span>
+            </div>
+            <div class="din_a xian" style="padding-bottom: 15px">
+                <span class="ff_c left">支付状态：</span>
+                <span>{{list.payStatus == 0?'未付款':'已付款'}}</span>
+            </div>
+
+            <div class="erdu" style="padding-top: 15px">
+                <span class="ff_c">商品总额</span>
+                <span class="right">￥{{list.orderTotal}}</span>
+            </div>
+            <div class="erdu">
+                <span class="ff_c left">运费</span>
+                <span class="right">+￥{{list.shippingTotal}}</span>
+            </div>
+            <div class="erdu">
+                <span class="ff_c left">优惠</span>
+                <span class="right">-￥{{list.couponPrice}}</span>
+            </div>
+            <div class="erdu" style="padding: 15px 0;border-bottom: 1px solid #f5f5f5;">
+                <span class="ff_c left">实付款</span>
+                <span class="right moni">￥{{list.actualTotal}}</span>
+            </div>
+            <div class="lianxi">
+                <!-- <div class="left wis">
+                    <van-icon style="vertical-align: middle" name="service-o" />
+                    <span style="vertical-align: middle">在线客服</span>
+                </div>
+                <div class="left wis">
+                    <van-icon style="vertical-align: middle" name="phone-o" />
+                    <span style="vertical-align: middle">联系门店</span>
+                </div> -->
+            </div>
+        </div>
+        <div style="height: 55px;"></div>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                list: {},
+                id: null,
+                status: '',
+                type: ""
+            }
+        },
+        created() {
+
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = getSearchString('token', search); //结果：18
+            this.id = getSearchString('id', search); //结果：18
+            this.status = getSearchString('status', search); //结果：18
+            this.type = getSearchString('type', search); //结果：18
+            localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk5OTgzNDI5fQ.2xv5tg4qArYllgMKoNVHUdYx9MaFZWN5Vx5uDsx_ZwB02WoY4oIwEQoN9JqoLKH8q-J_Zkrb20Fw9DVltXB1qQ');
+            // console.log(this.askPricePartIds)
+            if (this.id) {
+                console.log('asdas')
+                this.namelist()
+            }
+
+        },
+        mounted() {
+        },
+        methods: {
+            back() {
+                window.history.go(-1)
+            },
+            qiehuan(row) {
+                this.active = row;
+                this.namelist()
+            },
+            namelist() {
+                axios.get(`${baseURL}/vehicle/diy/mall/order/details`, {
+                    params: { id: this.id, type: this.type },
+                    headers: { 'Authorization': window.localStorage.getItem('token') },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

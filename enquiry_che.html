@@ -35,8 +35,7 @@
                               <span class="indexWord">{{index}}</span> 
                     <!-- <van-cell @click="chelist(item)" v-for="(items,index) in item" :key="index"
                         :title="items.ppinpai" /> -->
-                           <div v-for="items in item" :key="items" class="p_list" @click="chelist(items)"
-                    :class="items.id==switchActive2?'letz_a_A':'p_list'">
+                           <div v-for="items in item" :key="items" class="p_list" @click="chelist(items)">
                     <img class="pinpai_img" :src="items.ppinpaiLogoUrl" alt="">
                     <span class="pinpai_txt">{{items.ppinpai}}</span>
                 </div>

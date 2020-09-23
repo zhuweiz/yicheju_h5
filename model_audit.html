@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>车牌审核</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/model_audit.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #F7F9FC;height: 100%;" v-cloak>
+        <van-nav-bar title="审核列表" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div class="hed_lis">
+            <div class="hhcc" @click="qiehuan(1)">
+                待审核
+                <div class="hua" v-if="active == '1'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(3)">
+                未通过
+                <div class="hua" v-if="active == '3'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(2)">
+                已通过
+                <div class="hua" v-if="active == '2'"></div>
+            </div>
+        </div>
+        <div style="padding-top:86px;">
+            <div class="pai_list" v-for="(item,idx) in list" :key="idx"
+                @click="renzhen(item)">
+                <div style="overflow: hidden;">
+                    <div class="left chepai">{{item.carNo}}</div>
+                    <div class="right renzheng">
+                        <span v-if="item.auth==0" style="color: #000093;">去认证</span>
+                        <span v-if="item.auth==1" style="color: #000093;">待认证</span>
+                        <span v-if="item.auth==2">已认证</span>
+                        <span v-if="item.auth==3" style="color: red;">认证未通过</span>
+                    </div>
+                </div>
+                <div style="overflow: hidden;margin-top: 10px;">
+                    <div class="left" style="width: 45px;height: 45px;">
+                        <img class="chexinimg" :src="item.carBrandLogo" alt />
+                    </div>
+                    <div class="left che_h2">
+                        <div class="c_h1">
+                            {{item.carBrand}}-{{item.carModel}}
+                            <!-- <span class="moren" v-if="item.onDefault">默认</span> -->
+                        </div>
+                        <!-- <div class="c_h2">2018款2.0T 双离合 尊享版</div> -->
+                    </div>
+                </div>
+            </div>
+            <van-empty v-if="list.length < 1" description="暂无数据~" />
+        </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                list: [],
+                active: 1,
+            }
+        },
+        created() {
+
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = getSearchString('token', search); //结果：18
+            localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAxMTc5MzA1fQ.dbK6IicWhmTVN2G_znqDk_G6tuPFddPe_IgjnAlmPy2vSNWlo6Dio7WNXCXEOMDd_D4SqEbEptleOjQNJkhzSQ');
+            // console.log(this.askPricePartIds)
+            this.namelist()
+        },
+        mounted() {
+        },
+        methods: {
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            renzhen(item) {
+                window.location.href = "model_details.html?id=" + item.id + "&auth=" + this.active
+            },
+            qiehuan(row) {
+                this.active = row;
+                this.namelist()
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/diy/mall/app/car/list`, {
+                    params: { status: this.active, },
+                    headers: { 'Authorization': window.localStorage.getItem('token') },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>车牌审核</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/model_details.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ebedf0;height: 100%;" v-cloak>
+        <van-nav-bar title="车牌审核" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div style="padding-top:46px;">
+            <van-cell-group>
+                <van-field v-model="addForm.chexin" required clearable label="车型" placeholder="请输入车型"
+                    :class="addForm.carModelAuth?'dd':'cc'"
+                    :right-icon="auth !=1?addForm.carModelAuth == 0 ?'clear':'checked':''" readonly></van-field>
+                <van-field v-model="addForm.carNo" required clearable label="车牌号码" placeholder="请输入车牌号码" readonly
+                    :class="addForm.carNoAuth?'dd':'cc'"
+                    :right-icon="auth !=1?addForm.carNoAuth == 0 ?'clear':'checked':''"></van-field>
+
+                <van-field v-model="addForm.carVin" required readonly clearable label="车架号"
+                    :class="addForm.carVinAuth?'dd':'cc'"
+                    :right-icon="auth !=1?addForm.carVinAuth == '0'?'clear':'checked':''" placeholder="请输入车架号（Vin码）">
+                </van-field>
+                <van-field v-model="addForm.phone" readonly required clearable label="行驶证照片"
+                    :class="addForm.carDriveAuth?'dd':'cc'"
+                    :right-icon="auth !=1?addForm.carDriveAuth == 0 ?'clear':'checked':''"></van-field>
+            </van-cell-group>
+            <div class="tupian">
+                <!-- @click="getImg(addForm.driveUrl)" -->
+                <img class="cheimgs" @click="getImg(addForm.driveUrl)" v-if="addForm.driveUrl" :src="addForm.driveUrl"
+                    alt />
+                <van-icon v-else name="plus" />
+            </div>
+            <div class="bott" v-if="auth == '1'">
+                <!-- @click="tianjia" -->
+                <div class="bott_c" @click="weitongguo">
+                    <span>审核未通过</span>
+                </div>
+                <div class="bott_b" @click="tongguo">
+                    <span>审核通过</span>
+                </div>
+            </div>
+
+        </div>
+        <van-dialog v-model="show" title="选择审核未通过原因" show-cancel-button @confirm="tijiao">
+            <van-checkbox checked-color="#07c160" icon-size="14px" v-model="carDriveAuth" shape="square">行驶证图片问题
+            </van-checkbox>
+            <van-checkbox checked-color="#07c160" icon-size="14px" v-model="carNoAuth" shape="square">车牌问题
+            </van-checkbox>
+            <van-checkbox checked-color="#07c160" icon-size="14px" v-model="carVinAuth" shape="square">车架号问题
+            </van-checkbox>
+            <van-checkbox checked-color="#07c160" icon-size="14px" v-model="carModelAuth" shape="square">车型问题
+            </van-checkbox>
+        </van-dialog>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                addForm: {},
+                active: 1,
+                carDriveAuth: false,
+                carNoAuth: false,
+                carVinAuth: false,
+                carModelAuth: false,
+                checked: 0,
+                chexin: '',
+                id: '',
+                auth: 1,
+                show: false,
+            }
+        },
+        created() {
+
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            // this.token = getSearchString('token', search); //结果：18
+            this.id = getSearchString('id', search); //结果：18
+            this.auth = getSearchString('auth', search); //结果：18
+            // localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAxMTc5MzA1fQ.dbK6IicWhmTVN2G_znqDk_G6tuPFddPe_IgjnAlmPy2vSNWlo6Dio7WNXCXEOMDd_D4SqEbEptleOjQNJkhzSQ');
+            // console.log(this.askPricePartIds)
+            this.namelist()
+        },
+        mounted() {
+        },
+        methods: {
+            back() {
+
+                window.history.go(-1)
+            },
+            tijiao() {
+                var _this = this
+                if (!this.carDriveAuth && !this.carNoAuth && !this.carVinAuth && !this.carModelAuth) {
+                    _this.$toast("请先选择未通过原因");
+                    return
+                }
+                var data = {
+                    id: this.addForm.id,
+                    carDriveAuth: this.carDriveAuth ? '0' : '1',
+                    carNoAuth: this.carNoAuth ? '0' : '1',
+                    carVinAuth: this.carVinAuth ? '0' : '1',
+                    carModelAuth: this.carModelAuth ? '0' : '1',
+                    auth: 0,
+                }
+                axios.post(`${baseURL}/vehicle/diy/mall/audit`, data,
+                    { headers: { 'Authorization': window.localStorage.getItem('token') } })
+                    .then(res => {
+                        console.log('res=>', res);
+                        if (res.data.code = 200) {
+                            _this.$toast("提交审核成功");
+                            setTimeout(() => {
+                                window.history.go(-1)
+                            }, 1000);
+                        } else {
+                            this.$toast.fail(res.data.message)
+                        }
+                    })
+            },
+            tongguo() {
+                var _this = this
+                var data = {
+                    id: this.addForm.id,
+                    carDriveAuth: 1,
+                    carNoAuth: 1,
+                    carVinAuth: 1,
+                    carModelAuth: 1,
+                    auth: 1,
+                }
+                axios.post(`${baseURL}/vehicle/diy/mall/audit`, data,
+                    { headers: { 'Authorization': window.localStorage.getItem('token') } })
+                    .then(res => {
+                        console.log('res=>', res);
+                        if (res.data.code = 200) {
+                            _this.$toast("提交审核成功");
+                            setTimeout(() => {
+                                window.history.go(-1)
+                            }, 1000);
+                        } else {
+                            this.$toast.fail(res.data.message)
+                        }
+                    })
+            },
+            getImg(images) {
+                vant.ImagePreview([images]);
+            },
+            //未通过
+            weitongguo(row) {
+                this.show = true
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/diy/mall/car/audit`, {
+                    params: { id: this.id, },
+                    headers: { 'Authorization': window.localStorage.getItem('token') },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.addForm = res.data.data;
+                        this.addForm.chexin = res.data.data.carBrand + '-' + res.data.data.carModel
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>确认订单</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/quanbu_order.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
+
+<body>
+    <!-- v-cloak -->
+    <div id="app" style="background: #ebedf0;height: 100%;">
+        <van-nav-bar title="全部订单" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div class="hed_lis">
+            <div class="hhcc" @click="qiehuan(-1)">
+                全部
+                <div class="hua" v-if="active == '-1'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(0)">
+                待付款
+                <div class="hua" v-if="active == '0'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(1)">
+                待预约
+                <div class="hua" v-if="active == '1'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(2)">
+                待安装
+                <div class="hua" v-if="active == '2'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(3)">
+                已取消
+                <div class="hua" v-if="active == '3'"></div>
+            </div>
+        </div>
+        <div style="padding-top:91px;">
+
+            <div class="ord_lis">
+                <!--    <div class="order_list" v-for="(item,index) in list" :key="index" @click="dindanxiangqin(item)">
+                    <div class="ordrt_h1">
+                        <div class="left">订单编号：{{item.orderNumber}}</div>
+                        <div class="right">
+                            <span style="vertical-align: middle" v-if="item.status == -1">已取消</span>
+                            <span v-if="item.status == 0">待付款</span>
+                            <span v-if="item.status == 1">待收货</span>
+                            <span v-if="item.status == 2">待安装</span>
+                            <span v-if="item.status == 4">已完成</span>
+                            <van-icon class="shanchu" @click.stop="shanchuB(item)" v-if="item.status == -1"
+                                style="font-size: 14px;" name="delete" />
+                        </div>
+                    </div>
+                    <div class="ordrt_h2">
+                        <img class="order_img left" :src="item.attrImg" alt />
+                        <div class="right order_name">
+                            <div class="biaoti_ord">{{item.serviceName}}</div>
+                            <div class="jiance">免费常规检测服务</div>
+                            <div class="jianshu">
+                                <span class="left" style="color: #999;">共{{item.num}}件</span>
+                                <span class="right">￥{{item.orderTotal}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bot">
+                        <div class="zhifu" v-if="item.status == 0">立即支付</div>
+                        <div class="zhifu" v-if="item.status == 1" @click="shouhuo(item)">确认收货</div>
+                    </div>
+                </div> -->
+                <div class="order_list" @click="tiaozhuan(item)" v-for="(item,index) in list" :key="index">
+                    <div class="ordrt_h1">
+                        <div class="left">订单编号：{{item.orderNumber}}</div>
+                        <span class="right" style="color: #333;">
+                            <span v-if="item.status == 0">待付款</span>
+                            <span v-if="item.status == 4">已完成</span>
+                            <span v-if="item.status == 2">待安装</span>
+                            <span v-if="item.status == 1">待预约</span>
+                            <span v-if="item.status == -1">已取消</span>
+                            <!-- <van-icon class="shanchu" style="font-size: 14px;" name="delete" /> -->
+                        </span>
+                    </div>
+                    <div class="ordrt_h3">
+                        <div class="left chepai">{{item.carNo}}</div>
+                        <div class="right">{{item.carModel}}</div>
+                    </div>
+                    <div class="ordrt_h4">
+                        <div class="left ">
+                            <van-icon class="ttbb" style="vertical-align: bottom;" name="manager" /><span class="name_Z"
+                                style="vertical-align: bottom;line-height: 17px;">{{item.receiver}}</span></div>
+                        <div class="right">
+                            <van-icon style="vertical-align: bottom;" class="ttbb" name="phone-circle-o" />
+                            <span style="vertical-align: bottom;line-height: 17px;margin-left: 5px;">{{item.tel}}</span>
+                        </div>
+                    </div>
+                    <div class="ordrt_h2">
+                        <img class="order_img left" :src="item.attrImg" alt />
+                        <div class="right order_name">
+                            <div class="biaoti_ord">{{item.serviceName}}</div>
+                            <div class="fuwu">免费常规检修服务</div>
+                            <div class="jianshu">
+                                <span class="left" style="color: #999;">共{{item.num}}件</span>
+                                <span class="right" style="font-weight: bold;">￥{{item.orderTotal}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                list: [],
+                active: -1,
+            }
+        },
+        created() {
+
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = getSearchString('token', search); //结果：18
+            localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk5OTgzNDI5fQ.2xv5tg4qArYllgMKoNVHUdYx9MaFZWN5Vx5uDsx_ZwB02WoY4oIwEQoN9JqoLKH8q-J_Zkrb20Fw9DVltXB1qQ');
+            // console.log(this.askPricePartIds)
+            this.namelist()
+        },
+        mounted() {
+        },
+        methods: {
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            tiaozhuan(item) {
+                window.location.href = "quanbu_details.html?id=" +item.id +"&status=" +item.status+"&type=" +item.type
+            },
+            qiehuan(row) {
+                this.active = row;
+                this.namelist()
+            },
+            namelist() {
+          
+                // console.log(data)
+                axios.get(`${baseURL}/vehicle/diy/mall/order/list/app`, {
+                    params: { status: this.active, },
+                    headers: { 'Authorization': window.localStorage.getItem('token') },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>
