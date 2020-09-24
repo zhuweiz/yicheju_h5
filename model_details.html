@@ -28,8 +28,8 @@
 <body>
     <!--  -->
     <div id="app" style="background: #ebedf0;height: 100%;" v-cloak>
-        <van-nav-bar title="车牌审核" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
-        <div style="padding-top:46px;">
+        <van-nav-bar v-if="isok" title="车牌审核" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div  :style="{'padding-top':(isok?'46px':'')}">
             <van-cell-group>
                 <van-field v-model="addForm.chexin" required clearable label="车型" placeholder="请输入车型"
                     :class="addForm.carModelAuth?'dd':'cc'"
@@ -94,13 +94,14 @@
                 carModelAuth: false,
                 checked: 0,
                 chexin: '',
+                isok:false,
                 id: '',
                 auth: 1,
                 show: false,
             }
         },
         created() {
-
+            this.appSource()
             function getSearchString(key, Url) {
                 var str = Url;
                 str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
@@ -127,6 +128,18 @@
         mounted() {
         },
         methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
             back() {
 
                 window.history.go(-1)

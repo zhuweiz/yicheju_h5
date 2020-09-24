@@ -27,9 +27,9 @@
 
 <body>
     <!-- v-cloak -->
-    <div id="app" style="background: #ebedf0;height: 100%;">
-        <van-nav-bar title="全部订单" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
-        <div class="hed_lis">
+    <div id="app"  style="background: #ebedf0;height: 100%;">
+        <van-nav-bar  v-if="isok" title="全部订单" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div class="hed_lis" :style="{top:(isok?'46px':'')}">
             <div class="hhcc" @click="qiehuan(-1)">
                 全部
                 <div class="hua" v-if="active == '-1'"></div>
@@ -51,7 +51,7 @@
                 <div class="hua" v-if="active == '3'"></div>
             </div>
         </div>
-        <div style="padding-top:91px;">
+        <div :style="{'padding-top':(isok?'91px':'')}">
 
             <div class="ord_lis">
                 <!--    <div class="order_list" v-for="(item,index) in list" :key="index" @click="dindanxiangqin(item)">
@@ -136,10 +136,11 @@
                 search: '',
                 list: [],
                 active: -1,
+                isok:""
             }
         },
         created() {
-
+            this.appSource()
             function getSearchString(key, Url) {
                 var str = Url;
                 str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
@@ -164,6 +165,18 @@
         mounted() {
         },
         methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
             back() {
                 window.androidjs.onCallbackIntent("MainActivity");
             },
