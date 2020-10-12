@@ -1,0 +1,121 @@
+.xuan_a {
+    font-size: 13px;
+    overflow: hidden;
+    margin: 5px 0;
+  }
+  .shijian {
+    font-size: 12px;
+    text-align: center;
+    border: 1px solid #f5f5f5;
+    padding: 6px 0;
+    border-radius: 5px;
+  }
+  .shijian p {
+    text-align: center;
+    line-height: 6px;
+  }
+  .xianmu {
+    font-size: 14px;
+    padding: 0 12px;
+    overflow: hidden;
+  }
+  .shuoming {
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 18px;
+    background: #ffffe0;
+    color: #333;
+  }
+  .xianmuc {
+    font-size: 14px;
+    padding: 0 12px;
+    overflow: hidden;
+    margin-top: 15px;
+  }
+  
+  .iptt {
+    width: 85%;
+    height: 120px;
+    border: 1px solid #999;
+  }
+  .xianmu .activ {
+    background: red;
+    color: #fff;
+  }
+  .shijianc .activc {
+    background: red;
+    color: #fff;
+  }
+  .activc p {
+    color: #fff;
+  }
+  .xianmu_a {
+    display: inline-block;
+    border: 1px solid #f5f5f5;
+    margin-left: 6px;
+    font-size: 13px;
+    padding: 0 5px;
+    color: #666;
+    border-radius: 4px;
+  }
+  .van-tab {
+    /* // color: #000; */
+  }
+  
+  .yuyue {
+    font-size: 10px;
+    color: #666;
+  }
+  .van-row {
+    margin: 15px 12px;
+  }
+  .xin_b {
+    margin-left: 12px;
+    font-size: 13px;
+  }
+  .mendiantu {
+    width: 80px;
+    height: 70px;
+  }
+  .dian_h1 {
+    font-size: 16px;
+    font-weight: bold;
+    width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 14px;
+  }
+  .dian_h3 {
+    color: #666;
+    width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 6px;
+    white-space: nowrap;
+  }
+  .van-goods-action-button--last {
+    border-radius: 20px;
+  }
+  .dian_h2 {
+    color: #666;
+    line-height: 14px;
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  .dian_ha {
+    margin-left: 10px;
+    font-size: 12px;
+    margin-top: 8px;
+    width: 210px;
+  }
+  .shijianc:nth-child(n + 5) {
+    margin-top: 5px;
+  }
+  .biangen{
+      width: 94%;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      margin-left: 3%;
+  }

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>预约管理</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="css/make_list.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .van-tab--active {
+        color: #ee0a24;
+
+    }
+
+    .van-tab {
+        flex-basis: 25% !important;
+        font-weight: bold;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #fff;height: 100%;" v-cloak>
+        <van-nav-bar v-if="isok" title="预约管理" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <van-tabs @click="qiehuan" class="toubu" :style="{top:(isok?'46px':'')}">
+            <van-tab :name="item.nianyue" v-for="(item,index) in list" :title="index==0?item.yue +'(今天)':item.yue"
+                :key="index">
+            </van-tab>
+        </van-tabs>
+        <van-row class="biaoti" :style="{top:(isok?'90px':'44px')}">
+            <van-col span="4">时间</van-col>
+            <van-col span="7">车牌</van-col>
+            <van-col span="8" style="text-align: left;">预约内容</van-col>
+            <van-col span="5">状态</van-col>
+        </van-row>
+        <!-- style="padding-top:86px;" -->
+        <div :style="{'padding-top':(isok?'130px':'86px')}" style="overflow: hidden;">
+            <van-row style="position: relative" class="shuju" v-for="(item,index) in yuyuelist" :key="index">
+                <van-col span="4" class="shijian">{{item.timeSlot}}</van-col>
+                <van-col span="20" class="lists">
+                    <div class="list" v-for="(items,idx) in item.appointmentInfoDOList" :key="'i'+idx">
+                        <div class="list_h1">
+                            <span class="left" style="width: 30%">{{items.carNo}}</span>
+                            <span class="left" style="width: 50%" class="baoyan">{{items.items}}</span>
+                            <span class="right">
+                                <span v-if="items.status == 0" class="dafu" @click.stop="dafu(items)">答复</span>
+                                <span v-if="items.status == 1">未到店</span>
+                                <span v-if="items.status == 2" style="color: #3CB371;">已到店</span>
+                                <span v-if="items.status == 3" style="color: #FF0000;">已逾期</span>
+                                <span v-if="items.status == 4" style="color: #FF0000;">已取消</span>
+                            </span>
+                        </div>
+                        <div class="list_h2">
+                            <span class="left name">
+                                <van-icon name="phone-circle-o" style="vertical-align: middle;font-size: 16px;">
+                                </van-icon>
+                                <span style="vertical-align: middle">{{items.userName}} {{items.phone}}</span>
+                            </span>
+                            <span class="right">
+                                <span v-if="items.payStatus == 1" class="zhifu">已付款</span>
+                                <!-- <span v-else >已付款</span> -->
+                            </span>
+                        </div>
+                    </div>
+
+                </van-col>
+
+            </van-row>
+
+            <van-empty v-if="list.length < 1" description="暂无数据~" />
+        </div>
+        <van-overlay :show="show" @click="show = false">
+            <div class="wrapper">
+                <div class="block" @click.stop>
+                    <div @click.stop="tongyi">同意预约</div>
+                    <div @click.stop="quxiao">取消预约</div>
+                    <div @click.stop="tobiangen">变更时间</div>
+                </div>
+            </div>
+        </van-overlay>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                show: false,
+                list: [],
+                active: 1,
+                item:{},
+                isok: false,
+                nianyue: '',
+                type: '',
+                id: '',
+                yuyuelist: [],
+            }
+        },
+        created() {
+            this.getDay(0);
+            this.getDay(1);
+            this.getDay(2);
+            this.getDay(3);
+            this.getDay(4);
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = getSearchString('token', search); //结果：18
+            localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAzMTY0MTU3fQ.USMjymu1Z2vTMNCcEYBEenRJOtNvIy2cKjBY6EVDjGV-95eZ1PRwCDxnnGCRxtVVeXWW1IuhsCiEuFdySOSg5w');
+            // console.log(this.askPricePartIds)
+            this.nianyue = this.list[0].nianyue
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+
+            tongyi() {
+                // this.$toast
+                this.$dialog.confirm({
+                    title: '',
+                    message: '确实同意此预约吗？',
+                })
+                    .then(() => {
+                        axios.post(`${baseURL}/vehicle/appointment/update`, null,
+                            {
+                                params: {
+                                    id: this.id,
+                                    type: this.type,
+                                    status: 1,
+                                }, headers: { 'Authorization': window.localStorage.getItem('token') }
+                            })
+                            .then(res => {
+                                console.log('res=>', res);
+                                if (res.data.code = 200) {
+                                    this.$toast("同意预约成功");
+                                    this.show = false
+                                    this.namelist()
+                                } else {
+                                    this.$toast.fail(res.data.message)
+                                }
+                            })
+                    })
+                    .catch(() => {
+                        // on cancel
+                        console.log('取消')
+                    });
+            },
+            tobiangen() {
+                sessionStorage.setItem('item', JSON.stringify(this.item));
+                location.href = "make_biangen.html";
+            },
+            quxiao() {
+                this.$dialog.confirm({
+                    title: '',
+                    message: '确实取消此预约吗？',
+                })
+                    .then(() => {
+                        axios.post(`${baseURL}/vehicle/appointment/update`, null,
+                            {
+                                params: {
+                                    id: this.id,
+                                    type: this.type,
+                                    status: 0,
+                                }, headers: { 'Authorization': window.localStorage.getItem('token') }
+                            })
+                            .then(res => {
+                                console.log('res=>', res);
+                                if (res.data.code = 200) {
+                                    this.$toast("取消预约成功");
+                                    this.show = false
+                                    this.namelist()
+                                } else {
+                                    this.$toast.fail(res.data.message)
+                                }
+                            })
+                    })
+                    .catch(() => {
+                        // on cancel
+                        console.log('取消')
+                    });
+            },
+            dafu(item) {
+                this.id = item.id
+                this.type = item.type
+                this.item = item
+                this.show = true
+            },
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                    console.log("andriod");
+                }
+            },
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            // etNowTimes() {
+            //     let myDate = new Date();
+            //     let wk = myDate.getDay();
+            //     let weeks = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+            //     let week = weeks[wk];
+            //     console.log(week);
+            //     this.nowWeek = week;
+            // },
+            getDay(day) {
+                var today = new Date();
+                console.log(today);
+                var targetday_milliseconds = today.getTime() + 1000 * 60 * 60 * 24 * day;
+                console.log(targetday_milliseconds);
+                today.setTime(targetday_milliseconds); //注意，这行是关键代码
+                var tYear = today.getFullYear();
+                var tMonth = today.getMonth();
+                var tDate = today.getDate();
+                tMonth = this.doHandleMonth(tMonth + 1);
+                tDate = this.doHandleMonth(tDate);
+                var shijian = tYear + "-" + tMonth + "-" + tDate;
+                var date1 = new Date(shijian);
+                // let wk = date1.getDay();
+                // let weeks = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+                // let week = weeks[wk];
+                var yue = tMonth + "-" + tDate;
+                var nianyue = tYear + "-" + tMonth + "-" + tDate;
+                // week: week
+                var lis = {
+                    yue: yue,
+                    nianyue: nianyue,
+
+                };
+                // console.log(week);
+                console.log(date1);
+                //   return tYear + "-" + tMonth + "-" + tDate;
+                this.list.push(lis);
+                return tMonth + "-" + tDate + " ";
+            },
+            doHandleMonth(month) {
+                var m = month;
+                if (month.toString().length == 1) {
+                    m = "0" + month;
+                }
+                return m;
+            },
+            qiehuan(name, title) {
+                this.nianyue = name;
+                this.namelist()
+
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/appointment/app/list`, {
+                    params: { time: this.nianyue, },
+                    headers: { 'Authorization': window.localStorage.getItem('token') },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.yuyuelist = res.data.data
+                        console.log(this.yuyuelist)
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

@@ -44,9 +44,8 @@
             </div>
         </div>
         <!-- style="padding-top:86px;" -->
-        <div :style="{'padding-top':(isok?'86px':'')}">
-            <div class="pai_list" v-for="(item,idx) in list" :key="idx"
-                @click="renzhen(item)">
+        <div :style="{'padding-top':(isok?'86px':'46px')}" style="overflow: hidden;background: rgb(247, 249, 252);">
+            <div class="pai_list" v-for="(item,idx) in list" :key="idx" @click="renzhen(item)">
                 <div style="overflow: hidden;">
                     <div class="left chepai">{{item.carNo}}</div>
                     <div class="right renzheng">
@@ -69,6 +68,7 @@
                     </div>
                 </div>
             </div>
+
             <van-empty v-if="list.length < 1" description="暂无数据~" />
         </div>
 
@@ -87,7 +87,7 @@
                 search: '',
                 list: [],
                 active: 1,
-                isok:false,
+                isok: false,
             }
         },
         created() {
@@ -109,11 +109,29 @@
             this.search = window.location.href
             this.token = getSearchString('token', search); //结果：18
             localStorage.setItem("token", this.token)
-            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAxMTc5MzA1fQ.dbK6IicWhmTVN2G_znqDk_G6tuPFddPe_IgjnAlmPy2vSNWlo6Dio7WNXCXEOMDd_D4SqEbEptleOjQNJkhzSQ');
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAyMTQ1MjEwfQ.qMXukQ_YG-5FJ45deYDIM5Ous53JsvzCoxYstoDfV0AOILVfx8lLBsfVGkSFTUZHDMPCHAH7NEKgdWT3Jd7qFA');
             // console.log(this.askPricePartIds)
             this.namelist()
         },
         mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
         },
         methods: {
             appSource() {
@@ -122,6 +140,7 @@
                 const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
                 if (isiOS) {
                     this.isok = false
+                   
                     console.log("ios");
                 } else {
                     this.isok = true
@@ -133,7 +152,8 @@
                 window.androidjs.onCallbackIntent("MainActivity");
             },
             renzhen(item) {
-                window.location.href = "model_details.html?id=" + item.id + "&auth=" + this.active
+                sessionStorage.setItem('isok2', 'true');
+                location.href = "model_details.html?id=" + item.id + "&auth=" + this.active
             },
             qiehuan(row) {
                 this.active = row;

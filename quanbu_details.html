@@ -33,7 +33,8 @@
             <span style="vertical-align: middle">订单详情</span>
         </div>
 
-        <div class="biao_ti" style=" position: relative;background: #ebedf0;" :style="{'padding-top':(isok?'46px':'')}">
+        <div class="biao_ti" style="background: #ebedf0;"
+            :style="{'padding-top':(isok?'46px':''),'position':(isok?'relative':'')}">
             <img class="beijintu" v-if="list.status == 0 || list.status == 1" src="img/dengdai.png" alt />
             <img class="beijintu" v-if="list.status == -1" src="img/quxiao.png" alt />
             <img class="beijintu" v-if="list.status == 4" src="img/wancheng.png" alt />
@@ -59,7 +60,7 @@
                     <div class="left order_name">
                         <div class="biaoti_ord">{{list.areaDetail}}</div>
                         <div class="jiance" v-if="list.carNo">{{list.carNo}}</div>
-                        <div style="width: 77px;height: 22px; margin: 6px 0;" v-else></div>
+                        <div style="width: 77px;height: 20px; margin: 6px 0;" v-else></div>
                         <div class="jianshu">
                             <span class style="color: #999;">{{list.receiver}}</span>
                             <span style="margin-left: 25px;">{{list.tel}}</span>
@@ -69,7 +70,7 @@
                 <div class="lis_h4">
                     <img class="menbiao left" src="img/chebiao.jpg" alt />
                     <span class="song left">{{list.carModel}}</span>
-                    <!-- <span class="rigth"></span> -->
+                    <span class="right daoru" @click="daoru" v-if="list.type== '1' || list.type == '2'">导入工单</span>
                 </div>
                 <!-- <div class="lis_h3" style="color: #666;">2008款 2.0L 无极 标准版</div> -->
             </div>
@@ -226,6 +227,17 @@
             qiehuan(row) {
                 this.active = row;
                 this.namelist()
+            },
+            daoru() {
+                let data = this.list
+                axios.post(`${baseURL}/vehicle/diy/mall/input/order`, data, { headers: { 'Authorization': window.localStorage.getItem('token') } })
+                    .then(res => {
+                        if (res.data.code == 200) {
+                            this.$toast('导入成功！')
+                        } else {
+                            this.$toast(res.data.message)
+                        }
+                    })
             },
             namelist() {
                 axios.get(`${baseURL}/vehicle/diy/mall/order/details`, {

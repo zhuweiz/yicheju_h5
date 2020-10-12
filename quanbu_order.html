@@ -51,7 +51,7 @@
                 <div class="hua" v-if="active == '3'"></div>
             </div>
         </div>
-        <div :style="{'padding-top':(isok?'91px':'')}">
+        <div :style="{'padding-top':(isok?'91px':'46px')}" style="overflow: hidden">
 
             <div class="ord_lis">
                 <!--    <div class="order_list" v-for="(item,index) in list" :key="index" @click="dindanxiangqin(item)">
@@ -136,7 +136,8 @@
                 search: '',
                 list: [],
                 active: -1,
-                isok:""
+                isok:"",
+                token:""
             }
         },
         created() {
@@ -158,7 +159,7 @@
             this.search = window.location.href
             this.token = getSearchString('token', search); //结果：18
             localStorage.setItem("token", this.token)
-            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk5OTgzNDI5fQ.2xv5tg4qArYllgMKoNVHUdYx9MaFZWN5Vx5uDsx_ZwB02WoY4oIwEQoN9JqoLKH8q-J_Zkrb20Fw9DVltXB1qQ');
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAyMjM0ODQ1fQ.aEL4CAPWLHeogsm31_nFvQK9fJ959ikER7heZXEd4HsnfL3teKiiXYFKCkanje_i-_tnnTDsZZgNJkc8gdwFfA');
             // console.log(this.askPricePartIds)
             this.namelist()
         },
@@ -181,7 +182,7 @@
                 window.androidjs.onCallbackIntent("MainActivity");
             },
             tiaozhuan(item) {
-                window.location.href = "quanbu_details.html?id=" +item.id +"&status=" +item.status+"&type=" +item.type
+                window.location.href = "quanbu_details.html?id=" +item.id +"&status=" +item.status+"&type=" +item.type+"&token=" +window.localStorage.getItem('token')
             },
             qiehuan(row) {
                 this.active = row;

@@ -27,19 +27,18 @@
 
 <body>
     <!--  -->
-    <div id="app" style="background: #ebedf0;height: 100%;" v-cloak>
+    <div id="app" style="background: #ebedf0;height: 100%;">
         <van-nav-bar v-if="isok" title="车牌审核" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
-        <div  :style="{'padding-top':(isok?'46px':'')}">
+        <div :style="{'padding-top':(isok?'46px':'')}">
             <van-cell-group>
                 <van-field v-model="addForm.chexin" required clearable label="车型" placeholder="请输入车型"
                     :class="addForm.carModelAuth?'dd':'cc'"
                     :right-icon="auth !=1?addForm.carModelAuth == 0 ?'clear':'checked':''" readonly></van-field>
-                <van-field v-model="addForm.carNo" required clearable label="车牌号码" placeholder="请输入车牌号码" readonly
-                    :class="addForm.carNoAuth?'dd':'cc'"
+                <van-field @click="tochepai" v-model="addForm.carNo" required clearable label="车牌号码"
+                    placeholder="请输入车牌号码" readonly :class="addForm.carNoAuth?'dd':'cc'"
                     :right-icon="auth !=1?addForm.carNoAuth == 0 ?'clear':'checked':''"></van-field>
 
-                <van-field v-model="addForm.carVin" required readonly clearable label="车架号"
-                    :class="addForm.carVinAuth?'dd':'cc'"
+                <van-field v-model="addForm.carVin" required clearable label="车架号" :class="addForm.carVinAuth?'dd':'cc'"
                     :right-icon="auth !=1?addForm.carVinAuth == '0'?'clear':'checked':''" placeholder="请输入车架号（Vin码）">
                 </van-field>
                 <van-field v-model="addForm.phone" readonly required clearable label="行驶证照片"
@@ -94,7 +93,7 @@
                 carModelAuth: false,
                 checked: 0,
                 chexin: '',
-                isok:false,
+                isok: false,
                 id: '',
                 auth: 1,
                 show: false,
@@ -121,11 +120,31 @@
             this.id = getSearchString('id', search); //结果：18
             this.auth = getSearchString('auth', search); //结果：18
             // localStorage.setItem("token", this.token)
-            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAxMTc5MzA1fQ.dbK6IicWhmTVN2G_znqDk_G6tuPFddPe_IgjnAlmPy2vSNWlo6Dio7WNXCXEOMDd_D4SqEbEptleOjQNJkhzSQ');
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyNTI2IiwiZXhwIjoxNjAyMTM5ODU2fQ._0JmVl9A9G6j__JNAZe-QM8VuNYurjiykKrU0pWlE16PlptceSK4hHYtShf8oTg5tx_-E6U5XGIM1wpWmNPD3Q');
             // console.log(this.askPricePartIds)
             this.namelist()
         },
         mounted() {
+
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+                // this.cccd = '删除了'
+                sessionStorage.removeItem('addForm');
+            } else {
+                setTimeout(res => {
+                    this.addForm = JSON.parse(sessionStorage.getItem('addForm'))
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
         },
         methods: {
             appSource() {
@@ -150,7 +169,7 @@
                     _this.$toast("请先选择未通过原因");
                     return
                 }
-                var data = {
+                var parmas = {
                     id: this.addForm.id,
                     carDriveAuth: this.carDriveAuth ? '0' : '1',
                     carNoAuth: this.carNoAuth ? '0' : '1',
@@ -158,7 +177,7 @@
                     carModelAuth: this.carModelAuth ? '0' : '1',
                     auth: 0,
                 }
-                axios.post(`${baseURL}/vehicle/diy/mall/audit`, data,
+                axios.post(`${baseURL}/vehicle/diy/mall/audit`, parmas,
                     { headers: { 'Authorization': window.localStorage.getItem('token') } })
                     .then(res => {
                         console.log('res=>', res);
@@ -176,6 +195,8 @@
                 var _this = this
                 var data = {
                     id: this.addForm.id,
+                    carVin: this.addForm.carVin,
+                    carNo: this.addForm.carNo,
                     carDriveAuth: 1,
                     carNoAuth: 1,
                     carVinAuth: 1,
@@ -189,8 +210,9 @@
                         if (res.data.code = 200) {
                             _this.$toast("提交审核成功");
                             setTimeout(() => {
-                                window.history.go(-1)
-                            }, 1000);
+                                sessionStorage.setItem('isok2', 'true');
+                                history.go(-1)
+                            }, 500);
                         } else {
                             this.$toast.fail(res.data.message)
                         }
@@ -217,6 +239,11 @@
                         this.$toast(res.data.message)
                     }
                 })
+            },
+            tochepai() {
+                sessionStorage.setItem('isok', 'true');
+                sessionStorage.setItem('addForm', JSON.stringify(this.addForm));
+                location.href = "carplate.html";
             },
         }
     })

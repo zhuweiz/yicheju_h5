@@ -10,10 +10,17 @@
 .beijintu {
   width: 100%;
   position: absolute;
-
   top: 0;
   left: 0;
   z-index: 0;
+}
+.daoru{
+  font-size: 13px;
+  border: 1.5px solid #FF6666;
+  color: #FF6666;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 4px
 }
 .bianti_a {
   font-size: 16px;
