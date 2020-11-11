@@ -23,6 +23,22 @@
 			color: #666;
 		}
 
+		.cimg {
+			display: flex;
+			justify-content: flex-start;
+			flex-wrap: wrap;
+		}
+
+		.bimg {
+			width: 25%;
+			margin: 10px 10px;
+			height: 90px;
+		}
+
+		.bimg:nth-of-type(n+2) {
+			/* margin-left: 5%; */
+		}
+
 		#signature {
 			z-index: 999;
 		}
@@ -94,7 +110,16 @@
 							<p class="t-r"> <em style="color:red;">￥{{orderData.amountActual}}</em></p>
 						</van-cell> -->
 				</van-cell-group>
+				<van-cell-group class="m-t-10 p-10 p-l-5" v-if="!showDom">
+					<van-cell title="外观留图"
+						style="border-left: 4px solid #2A9F58;margin-left: 5px; height: 30px; line-height: 30px;padding: 0; padding-left: 5px;">
 
+					</van-cell>
+					<div class="cimg">
+						<img class="bimg" @click="getImg(item.picUrl)" v-for="(item,idx) in orderData.orderPictureList" :key="idx" :src="item.picUrl"
+							alt="">
+					</div>
+				</van-cell-group>
 				<van-row>
 					<van-col span="24" style="color:red;font-size:12px;padding-left: 10px;">请您阅读并回答以下内容：</van-col>
 				</van-row>
@@ -235,6 +260,7 @@
 					<van-row>
 						<van-col span="24" style="color:red;font-size:12px;padding-left: 10px;">请您阅读并回答以下内容：</van-col>
 					</van-row>
+
 					<van-row>
 						<van-col span="2" style="padding-left: 10px;font-size:12px;">1.</van-col>
 						<van-col span="22" style="font-size:12px;">
@@ -372,18 +398,22 @@
 
 		},
 		methods: {
+			//点击放大图片
+			getImg(images) {
+				vant.ImagePreview([images]);
+			},
 			clickBut() {
 				$("#signature").jSignature({
-						color: "green",
-						lineWidth: 5,
-						width: "100%",
-						height: "100%"
-					})
-					if (this.showDom) {
-						this.showDom = false
-					} else {
-						this.showDom = true
-					}
+					color: "green",
+					lineWidth: 5,
+					width: "100%",
+					height: "100%"
+				})
+				if (this.showDom) {
+					this.showDom = false
+				} else {
+					this.showDom = true
+				}
 			},
 			views() {
 				this.show = true
@@ -418,7 +448,7 @@
 				this.rotateBase64Img(dataURL, 270)
 				setTimeout(() => {
 					_this.toast.message = "签名上传中..."
-					//console.log(this.baseData)
+					console.log(this.baseData)
 					var file = _this.dataURLtoFile(_this.baseData, "img");
 					_this.updata(file)
 				}, 300)

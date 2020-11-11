@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title></title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.5/lib/index.css">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.5/lib/vant.min.js"></script>
+    <script type="text/javascript" src="js/jSignature.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .xz p {
+            font-size: 13px;
+        }
+
+        .van-checkbox__label--disabled {
+            color: #666;
+        }
+
+        .cimg {
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .bimg {
+            width: 25%;
+            margin: 10px 10px;
+            height: 90px;
+        }
+
+        .bimg:nth-of-type(n+2) {
+            /* margin-left: 5%; */
+        }
+
+        #signature {
+            z-index: 999;
+        }
+        .signature{
+            position: fixed;
+            top: 0;
+            z-index: 999;
+            width: 100%;
+            height: 100%;
+        }
+        /* vue xiefa */
+        .signatureBox {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            background: #fff;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvasBox {
+            box-sizing: border-box;
+            flex: 1;
+        }
+
+        canvas {
+            border: 1px solid #7d7d7d;
+            width: 100%;
+            height: 100%;
+        }
+
+        .btnBox {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .btnBox button:first-of-type {
+            background: transparent;
+            border-radius: 4px;
+            height: 40px;
+            width: 80px;
+            font-size: 14px;
+        }
+
+        .btnBox button:last-of-type {
+            background: #71b900;
+            color: #fff;
+            border-radius: 4px;
+            height: 40px;
+            width: 80px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="abs-0">
+        <div class="h-100" v-if="!showDom">
+            <div class="h-100 o-y-auto" style="background: #fafafa;padding-bottom:6rem;">
+                <van-cell-group>
+                    <van-cell title="厂名" :value="orderData.garageName" />
+                </van-cell-group>
+                <van-cell-group>
+                    <van-cell title="日期" :value="orderData.createdDate" />
+                </van-cell-group>
+                <van-cell-group>
+                    <van-cell title="客户姓名" :value="orderData.customerName" />
+                </van-cell-group>
+                <van-cell-group>
+                    <van-cell title="手机号" :value="orderData.phone" />
+                </van-cell-group>
+
+                <van-cell-group class="m-t-10 p-10  p-l-5">
+                    <van-cell title="项目清单"
+                        style="border-left: 4px solid #2A9F58;margin-left: 5px; height: 30px; line-height: 30px;padding: 0; padding-left: 5px;">
+                        <em><span style="color:red;">￥{{towNumber(proTotal)}}</span></em>
+                    </van-cell>
+                </van-cell-group>
+                <van-cell-group>
+                    <van-cell v-for="(item,index) in orderData.orderItemList" :key="index" :title="item.itemName">
+                        <div class="f j-b">
+                            <em class="w-100 t-c">{{towNumber(item.standPrice)}}×{{oneNumber(item.counts)}}</em>
+                            <em>￥{{(item.standPrice*item.counts).toFixed(2)}}</em>
+                        </div>
+                    </van-cell>
+                </van-cell-group>
+
+                <van-cell-group class="m-t-10 p-10 p-l-5">
+                    <van-cell title="配件清单"
+                        style="border-left: 4px solid #2A9F58;margin-left: 5px; height: 30px; line-height: 30px;padding: 0; padding-left: 5px;">
+                        <em><span style="color:red;">￥{{towNumber(pjTotal)}}</span></em>
+                    </van-cell>
+                </van-cell-group>
+                <van-cell-group>
+                    <div v-for="(item,index) in orderData.orderItemList" :key="index">
+                        <van-cell v-for="(item2,index2) in item.orderPartList" :key="index2" :title="item2.itemName">
+                            <div class="f j-b">
+                                <em class="w-100">{{item2.partName}}</em>
+                                <em class="w-100 t-c" style="color: #969799;">{{item2.price}}×{{item2.counts}}</em>
+                                <em class="w-100 t-r"
+                                    style="color: #969799;">￥{{towNumber(item2.price*item2.counts)}}</em>
+                            </div>
+                        </van-cell>
+                    </div>
+                </van-cell-group>
+
+                </van-cell-group>
+
+                <van-cell-group v-if="!showDom" class="m-t-10 p-10 p-l-5">
+                    <van-cell title="维修款合计">
+                        <p class="t-r"><em
+                                style="color:red;font-size:16px;">￥{{towNumber(orderData.amountReceivable)}}</em></p>
+                    </van-cell>
+                    <!-- <van-cell title="优惠">
+							<p class="t-r"><em style="color:red;">-￥{{orderData.amountDiscount}}</em></p>
+						</van-cell>
+						<van-cell title="实收">
+							<p class="t-r"> <em style="color:red;">￥{{orderData.amountActual}}</em></p>
+						</van-cell> -->
+                </van-cell-group>
+                <van-cell-group class="m-t-10 p-10 p-l-5" v-if="!showDom">
+                    <van-cell title="外观留图"
+                        style="border-left: 4px solid #2A9F58;margin-left: 5px; height: 30px; line-height: 30px;padding: 0; padding-left: 5px;">
+
+                    </van-cell>
+                    <div class="cimg">
+                        <img class="bimg" @click="getImg(item.picUrl)" v-for="(item,idx) in orderData.orderPictureList"
+                            :key="idx" :src="item.picUrl" alt="">
+                    </div>
+                </van-cell-group>
+                <van-row>
+                    <van-col span="24" style="color:red;font-size:12px;padding-left: 10px;">请您阅读并回答以下内容：</van-col>
+                </van-row>
+                <van-row>
+                    <van-col span="2" style="padding-left: 10px;font-size:12px;">1.</van-col>
+                    <van-col span="22" style="font-size:12px;">
+                        <van-checkbox v-model="checked1" shape="square">我已认真阅读<font color="#2a9f58" @click.stop="views">
+                                《客户须知》</font>，同意相关条款。</van-checkbox>
+                    </van-col>
+                </van-row>
+                <van-row>
+                    <van-col span="17" style="padding-left: 10px;font-size:12px;">2.是否同意本厂人员外出试车、定损或年审。</van-col>
+                    <van-col span="7" style="font-size:12px;">
+                        <van-radio-group v-model="orderData.allowCarOut" direction="horizontal">
+                            <van-radio :name="true" shape="square">是</van-radio>
+                            <van-radio :name="false" shape="square">否</van-radio>
+                        </van-radio-group>
+                    </van-col>
+                    <van-col span="24" style="padding-left: 10px;font-size:12px;">
+                        <van-row>
+                            <van-col span="7">
+                                3.您的其他要求：
+                            </van-col>
+                            <van-col span="17">
+                                <input v-model="orderData.customerRequire" placeholder="" style="width: 95%;" />
+                            </van-col>
+                            <van-col span="7">
+                            </van-col>
+                            <van-col span="17">
+                                <font color="red">*不填视为无要求</font>
+                            </van-col>
+                        </van-row>
+                    </van-col>
+                </van-row>
+
+                <van-cell-group v-if="!showDom" class="w-100 b-0 l-0 z-999 p-15">
+                    <van-button type="primary" size="large" @click="clickBut()" class="agree"
+                        :disabled="!checked1 || orderData.allowCarOut == null">同意去签名</van-button>
+
+                    <!-- <van-cell>
+							<p style="text-align: left;">温馨提示：</p>
+							<p>
+								为保护您的权益，请将维修款项支付到公司账户，业务员私人收款属违规行为，出现任何问题，本公司概不负责，感谢您的理解和配合！
+							</p>
+							<p>
+								<img src="logo.jpg" style="width: 100%;" />
+							</p>
+						</van-cell> -->
+                </van-cell-group>
+            </div>
+        </div>
+
+        <van-dialog v-model="show" title="顾客须知">
+            <div class="xz" style="padding:2rem;">
+                <p>1、车内贵重物品、易损物品请顾客带走，如有遗失或损坏，本厂不负责任。</p>
+                <p>2、该车的意外事故，以事故判责为准，本厂以保险或物价为准修好车，不作其他赔偿。</p>
+                <p>3、因地震、台风、暴雨、暴乱等不可抗拒因素，造成该车损坏，本厂不负责任。</p>
+                <p>4、为保护您的权益，请将维修款项支付到公司账户，业务员私人收款属违规行为，出现任何问题，本公司概不负责。</p>
+                <p style="padding-top:1rem;"><img :src="orderData.companyLogo" alt="" width="100%"></p>
+            </div>
+        </van-dialog>
+
+        <!-- <div class="w-100 h-100" id="signature"></div> -->
+
+
+        <section class="signature" v-if=""  class="w-100 h-100">
+            <div class="signatureBox w-100 h-100" >
+                <div class="canvasBox w-100 h-100" ref="canvasHW" class=""   >
+                    <canvas class="w-100 h-100" ref="canvasF" @touchstart='touchStart' @touchmove='touchMove' @touchend='touchEnd'
+                        @mousedown="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp" style="width: 100%;height: 100%;"></canvas>
+                    <div class="btnBox">
+                        <div @click="overwrite">重写</div>
+                        <div @click="commit">提交签名</div>
+                    </div>
+                </div>
+            </div>
+            <img class="imgCanvas" :src="imgUrl">
+        </section>
+
+        <div v-if="showDom" class="abs w-100 z-999 p-15"
+            style="height: 5rem;transform: rotate(90deg);top: 50%;left: -35%;">
+            <div class="w-100 m-t-10 f">
+                <van-button class="m-5" block type="primary" block size="large" @click="submit()">同意</van-button>
+                <van-button class="m-5" block type="default" block size="large" @click="reset">重新输入</van-button>
+            </div>
+        </div>
+        <div v-if="successPage" class="abs-0">
+            <div class="h-100" v-if="!showDom">
+                <div class="h-100 o-y-auto" style="background: #fafafa;">
+                    <van-cell-group>
+                        <van-cell title="厂名" :value="orderData.garageName" />
+                    </van-cell-group>
+                    <van-cell-group>
+                        <van-cell title="日期" :value="orderData.createdDate" />
+                    </van-cell-group>
+                    <van-cell-group>
+                        <van-cell title="客户姓名" :value="orderData.customerName" />
+                    </van-cell-group>
+                    <van-cell-group>
+                        <van-cell title="手机号" :value="orderData.phone" />
+                    </van-cell-group>
+
+                    <van-cell-group class="m-t-10 p-10  p-l-5">
+                        <van-cell title="项目清单"
+                            style="border-left: 4px solid #2A9F58;margin-left: 5px; height: 30px; line-height: 30px;padding: 0; padding-left: 5px;">
+                            <em><span style="color:red;">￥{{towNumber(proTotal)}}</span></em>
+                        </van-cell>
+                    </van-cell-group>
+                    <van-cell-group>
+                        <van-cell v-for="(item,index) in orderData.orderItemList" :key="index" :title="item.itemName">
+                            <div class="f j-b">
+                                <em class="w-100 t-c">{{towNumber(item.standPrice)}}×{{oneNumber(item.counts)}}</em>
+                                <em>￥{{towNumber(item.standPrice*item.counts)}}</em>
+                            </div>
+                        </van-cell>
+                    </van-cell-group>
+
+                    <van-cell-group class="m-t-10 p-10 p-l-5">
+                        <van-cell title="配件清单"
+                            style="border-left: 4px solid #2A9F58;margin-left: 5px; height: 30px; line-height: 30px;padding: 0; padding-left: 5px;">
+                            <em><span style="color:red;">￥{{towNumber(pjTotal)}}</span></em>
+                        </van-cell>
+                    </van-cell-group>
+                    <van-cell-group>
+                        <div v-for="(item,index) in orderData.orderItemList" :key="index">
+                            <van-cell v-for="(item2,index2) in item.orderPartList" :key="index2"
+                                :title="item2.itemName">
+                                <div class="f j-b">
+                                    <em class="w-100">{{item2.partName}}</em>
+                                    <em class="w-100 t-c"
+                                        style="color: #969799;">{{towNumber(item2.price)}}×{{oneNumber(item2.counts)}}</em>
+                                    <em class="w-100 t-r"
+                                        style="color: #969799;">￥{{towNumber(item2.price*item2.counts)}}</em>
+                                </div>
+                            </van-cell>
+                        </div>
+                    </van-cell-group>
+
+                    </van-cell-group>
+
+                    <van-cell-group v-if="!showDom" class="m-t-10 p-10 p-l-5">
+                        <van-cell title="维修款合计">
+                            <p class="t-r"><em>￥{{towNumber(orderData.amountReceivable)}}</em></p>
+                            <!-- </van-cell>
+							<van-cell title="优惠">
+								<p class="t-r"><em style="color:red;">-￥{{orderData.amountDiscount}}</em></p>
+							</van-cell>
+							<van-cell title="实收">
+								<p class="t-r"> <em style="color:red;">￥{{orderData.amountActual}}</em></p>
+							</van-cell> -->
+                    </van-cell-group>
+
+                    <van-row>
+                        <van-col span="24" style="color:red;font-size:12px;padding-left: 10px;">请您阅读并回答以下内容：</van-col>
+                    </van-row>
+
+                    <van-row>
+                        <van-col span="2" style="padding-left: 10px;font-size:12px;">1.</van-col>
+                        <van-col span="22" style="font-size:12px;">
+                            <van-checkbox v-model="checked2" shape="square" disabled>我已认真阅读<font color="#2a9f58"
+                                    @click.stop="views">《客户须知》</font>，同意相关条款。</van-checkbox>
+                        </van-col>
+                    </van-row>
+                    <van-row>
+                        <van-col span="17" style="padding-left: 10px;font-size:12px;">2.是否同意本厂人员外出试车、定损或年审。</van-col>
+                        <van-col span="7" style="font-size:12px;">
+                            <van-radio-group v-model="orderData.allowCarOut" direction="horizontal" disabled>
+                                <van-radio :name="true" shape="square">是</van-radio>
+                                <van-radio :name="false" shape="square">否</van-radio>
+                            </van-radio-group>
+                        </van-col>
+                        <van-col span="24" style="padding-left: 10px;font-size:12px;">
+                            <van-row>
+                                <van-col span="7">
+                                    3.您的其他要求：
+                                </van-col>
+                                <van-col span="17">
+                                    <input v-model="orderData.customerRequire" placeholder="" disabled
+                                        style="width: 95%;" />
+                                </van-col>
+                                <van-col span="7">
+                                </van-col>
+                                <van-col span="17">
+                                    <font color="red">*不填视为无要求</font>
+                                </van-col>
+                            </van-row>
+                        </van-col>
+                    </van-row>
+
+                    <van-cell-group v-if="!showDom" class="w-100 b-0 l-0 z-999 p-15">
+                        <van-cell>
+                            <p style="text-align: left;">客户签名：</p>
+                            <p>
+                                <img :src="orderData.signUrl" style="width: 100%;" />
+                            </p>
+                        </van-cell>
+                        <van-cell v-if="orderData.pcPrintRemark">
+                            <p>
+                                <img :src="orderData.companyLogo" style="width: 100%;" />
+                            </p>
+                        </van-cell>
+                    </van-cell-group>
+                </div>
+            </div>
+        </div>
+        <div v-if="nodata" class="abs w-100 bgfff t-0 b-0 l-0 z-9999 f j-c a-c p-15">
+            抱歉，当前页面已过期
+        </div>
+        <div v-if="loading" class="abs w-100 bgfff t-0 b-0 l-0 z-999 f j-c a-c p-15">
+            <van-loading type="spinner" />
+        </div>
+
+    </div>
+    <style>
+    </style>
+</body>
+<script>
+    // 	//  const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+            return {
+                gid: "",
+                oid: "",
+                orderData: {},
+                showDom: false,
+                successPage: false,
+                loading: true,
+                nodata: false,
+                baseData: "",
+                toast: '',
+                checked1: false,
+                result: '',
+                show: false,
+                checked2: true,
+                //vuexiefa
+                stageInfo: '',
+                imgUrl: '',
+                client: {},
+                points: [],
+                canvasTxt: null,
+                startX: 0,
+                startY: 0,
+                moveY: 0,
+                moveX: 0,
+                endY: 0,
+                endX: 0,
+                w: null,
+                h: null,
+                isDown: false,
+            }
+        },
+        computed: {
+            proTotal() {
+                if (this.orderData.orderItemList !== undefined && this.orderData.orderItemList !== null && this.orderData.orderItemList.length > 0) {
+                    let sum = this.orderData.orderItemList.reduce(function (accumulator, currentValue) {
+                        return accumulator + (currentValue.standPrice * currentValue.counts)
+                    }, 0)
+                    return sum
+                }
+            },
+            pjTotal() {
+                let pjTotal = 0;
+                if (this.orderData.orderItemList !== undefined && this.orderData.orderItemList !== null && this.orderData.orderItemList.length > 0) {
+                    this.orderData.orderItemList.map((item) => {
+                        if (item.orderPartList !== undefined && item.orderPartList !== null && item.orderPartList.length > 0) {
+                            item.orderPartList.map((items) => {
+                                pjTotal += items.price * items.counts
+                            })
+                        }
+
+                    })
+                    return pjTotal
+                }
+            }
+        },
+        mounted() {
+
+            let _this = this
+            this.gid = this.getQueryVariable("gid")
+            this.oid = this.getQueryVariable("oid")
+            if (!this.gid || !this.oid) {
+                this.nodata = true
+            }
+            $.ajax({
+                type: "get",
+                contentType: "application/json;charset=UTF-8",
+                url: baseURL + "/vehicle/order/getSettlementOrder?gid=" + _this.gid + "&oid=" + _this.oid,
+                success: function (result) {
+                    _this.loading = false
+                    if (result.code === 200) {
+                        _this.orderData = result.data
+                        document.title = result.data.carNo + ' 维修确认单'
+                        if (result.data.signUrl) {
+                            _this.successPage = true
+                        }
+                    } else {
+                        //_this.nodata = true
+                        _this.$toast(result.message);
+                    }
+                },
+                error: function (e) { }
+            });
+            //vue 写法
+            let canvas = this.$refs.canvasF
+            console.log(this.$refs.canvasHW.offsetHeight)
+            canvas.height = this.$refs.canvasHW.offsetHeight - 600
+            canvas.width = this.$refs.canvasHW.offsetWidth - 0
+            this.canvasTxt = canvas.getContext('2d')
+            this.stageInfo = canvas.getBoundingClientRect()
+        },
+        methods: {
+            //vue 写法
+
+            touchStart(ev) {
+                ev = ev || event
+                ev.preventDefault()
+                if (ev.touches.length == 1) {
+                    let obj = {
+                        x: ev.targetTouches[0].clienX,
+                        y: ev.targetTouches[0].clientY,
+                    }
+                    this.startX = obj.x
+                    this.startY = obj.y
+                    this.canvasTxt.beginPath()
+                    this.canvasTxt.moveTo(this.startX, this.startY)
+                    this.canvasTxt.lineTo(obj.x, obj.y)
+                    this.canvasTxt.stroke()
+                    this.canvasTxt.closePath()
+                    this.points.push(obj)
+                }
+            },
+            touchMove(ev) {
+                ev = ev || event
+                ev.preventDefault()
+                if (ev.touches.length == 1) {
+                    let obj = {
+                        x: ev.targetTouches[0].clientX - this.stageInfo.left,
+                        y: ev.targetTouches[0].clientY - this.stageInfo.top
+                    }
+                    this.moveY = obj.y
+                    this.moveX = obj.x
+                    this.canvasTxt.beginPath()
+                    this.canvasTxt.moveTo(this.startX, this.startY)
+                    this.canvasTxt.lineTo(obj.x, obj.y)
+                    this.canvasTxt.stroke()
+                    this.canvasTxt.closePath()
+                    this.startY = obj.y
+                    this.startX = obj.x
+                    this.points.push(obj)
+                }
+            },
+            touchEnd(ev) {
+                ev = ev || event
+                ev.preventDefault()
+                if (ev.touches.length == 1) {
+                    let obj = {
+                        x: ev.targetTouches[0].clientX - this.stageInfo.left,
+                        y: ev.targetTouches[0].clientY - this.stageInfo.top
+                    }
+                    this.canvasTxt.beginPath()
+                    this.canvasTxt.moveTo(this.startX, this.startY)
+                    this.canvasTxt.lineTo(obj.x, obj.y)
+                    this.canvasTxt.stroke()
+                    this.canvasTxt.closePath()
+                    this.points.push(obj)
+                }
+            },
+            //pc
+            mouseDown(ev) {
+                ev = ev || event
+                ev.preventDefault()
+                if (1) {
+                    let obj = {
+                        x: ev.offsetX,
+                        y: ev.offsetY
+                    }
+                    this.startX = obj.x
+                    this.startY = obj.y
+                    this.canvasTxt.beginPath()
+                    this.canvasTxt.moveTo(this.startX, this.startY)
+                    this.canvasTxt.lineTo(obj.x, obj.y)
+                    this.canvasTxt.stroke()
+                    this.canvasTxt.closePath()
+                    this.points.push(obj)
+                    this.isDown = true
+                }
+            },
+            mouseMove(ev) {
+                ev = ev || event
+                ev.preventDefault()
+                if (this.isDown) {
+                    let obj = {
+                        x: ev.offsetX,
+                        y: ev.offsetY
+                    }
+                    this.moveY = obj.y
+                    this.moveX = obj.x
+                    this.canvasTxt.beginPath()
+                    this.canvasTxt.moveTo(this.startX, this.startY)
+                    this.canvasTxt.lineTo(obj.x, obj.y)
+                    this.canvasTxt.stroke()
+                    this.canvasTxt.closePath()
+                    this.startY = obj.y
+                    this.startX = obj.x
+                    this.points.push(obj)
+                }
+            },
+            mouseUp(ev) {
+                ev = ev || event
+                ev.preventDefault()
+                if (1) {
+                    let obj = {
+                        x: ev.offsetX,
+                        y: ev.offsetY
+                    }
+                    this.canvasTxt.beginPath()
+                    this.canvasTxt.moveTo(this.startX, this.startY)
+                    this.canvasTxt.lineTo(obj.x, obj.y)
+                    this.canvasTxt.stroke()
+                    this.canvasTxt.closePath()
+                    this.points.push(obj)
+                    this.points.push({ x: -1, y: -1 })
+                    this.isDown = false
+                }
+            },
+            //重写
+            overwrite() {
+                this.canvasTxt.clearRect(0, 0, this.$refs.canvasF.width, this.$refs.canvasF.height)
+                this.points = []
+            },
+            //提交签名
+            commit() {
+                this.imgUrl = this.$refs.canvasF.toDataURL();
+                console.log(this.$refs.canvasF.toDataURL()) //签名img回传后台
+            },
+
+            //vuexiefa
+            //点击放大图片
+            getImg(images) {
+                vant.ImagePreview([images]);
+            },
+            clickBut() {
+                console.log('asdasdsa')
+                // $("#signature").jSignature({
+                //     color: "green",
+                //     lineWidth: 5,
+                //     width: "100%",
+                //     height: "100%"
+                // })
+                if (this.showDom) {
+                    this.showDom = false
+                } else {
+                    this.showDom = true
+                }
+            },
+            views() {
+                this.show = true
+            },
+            reset() {
+                $("#signature").jSignature("reset")
+            },
+            dataURLtoFile(dataurl, filename) {
+                var arr = dataurl.split(","),
+                    mime = arr[0].match(/:(.*?);/)[1],
+                    bstr = atob(arr[1]),
+                    n = bstr.length,
+                    u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new File([u8arr], filename, {
+                    type: mime
+                });
+            },
+            submit() {
+                this.toast = this.$toast({
+                    duration: 0,
+                    forbidClick: true,
+                    loadingType: 'spinner',
+                    message: '签名生成中...'
+                });
+
+                let _this = this
+                var canvas = $(".jSignature")
+                var dataURL = canvas.get(0).toDataURL()
+                this.rotateBase64Img(dataURL, 270)
+                setTimeout(() => {
+                    _this.toast.message = "签名上传中..."
+                    //console.log(this.baseData)
+                    var file = _this.dataURLtoFile(_this.baseData, "img");
+                    _this.updata(file)
+                }, 300)
+
+            },
+            //				旋转base64
+            rotateBase64Img(src, edg) {
+                let _this = this
+                var edgData = ""
+                var canvas = document.createElement("canvas");
+                var ctx = canvas.getContext("2d");
+                var imgW;//图片宽度
+                var imgH;//图片高度
+                var size;//canvas初始大小
+                if (edg % 90 != 0) {
+                    console.error("旋转角度必须是90的倍数!");
+                    throw '旋转角度必须是90的倍数!';
+                }
+                (edg < 0) && (edg = (edg % 360) + 360)
+                const quadrant = (edg / 90) % 4; //旋转象限
+                const cutCoor = { sx: 0, sy: 0, ex: 0, ey: 0 }; //裁剪坐标
+                var image = new Image();
+                image.crossOrigin = "anonymous"
+                image.src = src;
+                image.onload = function () {
+                    imgW = image.width;
+                    imgH = image.height;
+                    size = imgW > imgH ? imgW : imgH;
+                    canvas.width = size * 2;
+                    canvas.height = size * 2;
+                    switch (quadrant) {
+                        case 0:
+                            cutCoor.sx = size;
+                            cutCoor.sy = size;
+                            cutCoor.ex = size + imgW;
+                            cutCoor.ey = size + imgH;
+                            break;
+                        case 1:
+                            cutCoor.sx = size - imgH;
+                            cutCoor.sy = size;
+                            cutCoor.ex = size;
+                            cutCoor.ey = size + imgW;
+                            break;
+                        case 2:
+                            cutCoor.sx = size - imgW;
+                            cutCoor.sy = size - imgH;
+                            cutCoor.ex = size;
+                            cutCoor.ey = size;
+                            break;
+                        case 3:
+                            cutCoor.sx = size;
+                            cutCoor.sy = size - imgW;
+                            cutCoor.ex = size + imgH;
+                            cutCoor.ey = size + imgW;
+                            break;
+                    }
+                    ctx.translate(size, size);
+                    ctx.rotate(edg * Math.PI / 180);
+                    ctx.drawImage(image, 0, 0);
+                    var imgData = ctx.getImageData(cutCoor.sx, cutCoor.sy, cutCoor.ex, cutCoor.ey);
+                    if (quadrant % 2 == 0) {
+                        canvas.width = imgW;
+                        canvas.height = imgH;
+                    } else {
+                        canvas.width = imgH;
+                        canvas.height = imgW;
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                    _this.baseData = canvas.toDataURL()
+                }
+            },
+            //				获取上传地址
+            updata(file) {
+                let _this = this
+                var formData = new FormData();
+                formData.append('file', file);
+                $.ajax({
+                    url: baseURL + '/vehicle/file/uploadPicture',
+                    type: 'POST',
+                    cache: false,
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    sync: false,
+                    success: function (result) {
+                        if (result.code === 200) {
+                            _this.submitData(result.data)
+                        } else {
+                            _this.toast.clear()
+                            _this.$toast(result.message);
+                        }
+                    },
+                    error: function (e) {
+                        _this.toast.clear()
+                        _this.$toast(e.message);
+                    }
+                })
+            },
+            submitData(imgurl) {
+                let _this = this
+                $.ajax({
+                    type: "post",
+                    url: baseURL + "/vehicle/order/customerSign",
+                    contentType: " application/json;charset=utf-8",
+                    data: JSON.stringify({
+                        "signUrl": imgurl,
+                        "oid": _this.oid,
+                        "gid": _this.gid,
+                        "allowCarOut": _this.orderData.allowCarOut == true ? 1 : 0,
+                        "customerRequire": _this.orderData.customerRequire
+                    }),
+                    success: function (result) {
+                        _this.toast.clear()
+                        if (result.code === 200) {
+                            //_this.successPage = true
+                            _this.$toast('上传成功');
+                            setTimeout(() => {
+                                location.reload()
+                            }, 1000);
+                        } else {
+                            _this.toast.clear()
+                            _this.$toast(result.message);
+                        }
+                    },
+                    error: function (e) {
+                        _this.toast.clear()
+                        _this.$toast(e.message);
+                    }
+                });
+            },
+            getQueryVariable(variable) {
+                var query = window.location.search.substring(1);
+                var vars = query.split("&");
+                for (var i = 0; i < vars.length; i++) {
+                    var pair = vars[i].split("=");
+                    if (pair[0] == variable) {
+                        return pair[1];
+                    }
+                }
+                return (false);
+            },
+            towNumber(val) {
+                if (val == undefined) return val
+                return val.toFixed(2)
+            },
+            oneNumber(val) {
+                if (val == undefined) return val
+                return val.toFixed(1)
+            }
+        }
+    })
+    /* 创建签名画布 */
+    $(".agree").click(function () {
+        $("#signature").jSignature({
+            color: "green",
+            lineWidth: 3,
+            width: "100%",
+            height: "100%",
+            "background-color": "#ffffff"
+        });
+    })
+    // $('body').on('touchend', function (el) {
+    //     console.log('关闭了弹窗')
+    //     if (el.target.tagName != 'INPUT') {
+    //         $('input').blur()
+    //     }
+    // })
+
+</script>
+
+</html>

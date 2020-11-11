@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>扫描结果</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/area.js"></script>
+    <script src="./js/api.js"></script>
+    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="./js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h2 {
+        text-align: center;
+        margin-top: 120px;
+        font-size: 26px;
+        /* font-weight: bold; */
+    }
+
+    .h3 {
+        text-align: center;
+        color: #666;
+        margin-top: 120px;
+        font-size: 13px;
+    }
+
+    .pai_list {
+        position: relative;
+    }
+
+    .anniu {
+        display: block;
+        width: 160px;
+        height: 35px;
+        line-height: 35px;
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        margin-left: -80px;
+        margin-bottom: 70px;
+    }
+
+    .chepai {
+        color: #000093;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #F7F9FC;height: 100%;" v-cloak>
+        <van-nav-bar v-if="isok" title="扫描结果" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+
+        <!-- style="padding-top:86px;" -->
+        <div :style="{'padding-top':(isok?'46px':'0px')}" style="overflow: hidden;background: #fff;">
+            <div class="pai_list">
+                <div style="overflow: hidden;margin-top: 40px;padding: 0 15px;">
+                    <div class="left chepai">{{list.carNo}}</div>
+                    <div class="right renzheng">
+                        <van-icon name="manager-o" style="vertical-align: middle"></van-icon>
+                        </van-icon><span style="vertical-align: middle">{{list.name}}</span>
+                        <van-icon name="phone-o" style="vertical-align: middle;margin-left: 10px"></van-icon>
+                        </van-icon><span style="vertical-align: middle">{{list.phone}}</span>
+                    </div>
+                </div>
+                <div class="h2"> <span v-if="list.type == 1">赠送套餐：{{list.pname}}</span>
+                    <span v-if="list.type == 2">赠送优惠券：{{list.pname}}</span>
+                    <span v-if="list.type == 3">赠送储值卡：{{list.pname}}元</span>
+                    <span v-if="list.type == 4">赠送积分：{{list.pname}}分</span>
+                    <span v-if="list.type == 5">线下奖品：{{list.pname}}</span></div>
+                <div class="h3">抽奖时间：{{list.createdDate}}</div>
+                <van-button type="danger" class="anniu" @click="fafang">确认发放奖品</van-button>
+            </div>
+        </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                list: {},
+                active: 0,
+                id: '',
+                isok: false,
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = getSearchString('token', search); //结果：18
+            this.id = getSearchString('id', search); //结果：18
+            localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjA1ODQyMzk2fQ.tRlZppyAO9TIAPY9_grKmtZzpvyw8NeOmP2dzsFroYZF4GdAiCbMg6O88e9fnpiZXkLwZI120lc2gEA9x4rkWQ');
+            // console.log(this.askPricePartIds)
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                    console.log("andriod");
+                }
+            },
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            qiehuan(row) {
+                this.active = row;
+                this.namelist()
+            },
+            fafang() {
+                axios.post(`${baseURL}/vehicle/luck/get/prize/` + this.list.id, data,
+                    { headers: { 'Authorization': window.localStorage.getItem('token') } })
+                    .then(res => {
+                        if (res.data.code == 200) {
+
+                            _this.$toast('发放成功')
+                        } else {
+                            _this.$toast(res.data.message)
+                        }
+                    })
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/luck/prize/` + this.id, {
+                    headers: { 'Authorization': window.localStorage.getItem('token') },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

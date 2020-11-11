@@ -39,9 +39,9 @@
     <!--  -->
     <div id="app" style="background: #fff;height: 100%;" v-cloak>
         <van-nav-bar v-if="isok" title="预约管理" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
-        <van-tabs @click="qiehuan" class="toubu" :style="{top:(isok?'46px':'')}">
-            <van-tab :name="item.nianyue" v-for="(item,index) in list" :title="index==0?item.yue +'(今天)':item.yue"
-                :key="index">
+        <van-tabs @click="qiehuan" class="toubu" @change="toqiehuan" v-model="nianyue" :style="{top:(isok?'46px':'')}">
+            <van-tab :name="item.nianyue" :id='index' @click.stop="cccdd" v-for="(item,index) in list"
+                :title="index==1?item.yue +'(今天)':item.yue" :key="index">
             </van-tab>
         </van-tabs>
         <van-row class="biaoti" :style="{top:(isok?'90px':'44px')}">
@@ -55,7 +55,8 @@
             <van-row style="position: relative" class="shuju" v-for="(item,index) in yuyuelist" :key="index">
                 <van-col span="4" class="shijian">{{item.timeSlot}}</van-col>
                 <van-col span="20" class="lists">
-                    <div class="list" v-for="(items,idx) in item.appointmentInfoDOList" :key="'i'+idx">
+                    <div class="list" v-for="(items,idx) in item.appointmentInfoDOList" :key="'i'+idx"
+                        @click="tiaozhuan(items)">
                         <div class="list_h1">
                             <span class="left" style="width: 30%">{{items.carNo}}</span>
                             <span class="left" style="width: 50%" class="baoyan">{{items.items}}</span>
@@ -86,6 +87,12 @@
 
             <van-empty v-if="list.length < 1" description="暂无数据~" />
         </div>
+        <!-- <van-calendar v-model="isshow" @confirm="onConfirm" :show-confirm="false" /> -->
+        <van-popup v-model="isshow" round position="bottom" :style="{ height: '35%' }">
+            <van-datetime-picker @cancel="isshow =false" @confirm='onConfirm' v-model="currentDate" type="date"
+                title="选择年月日" :min-date="minDate" :max-date="maxDate" />
+        </van-popup>
+
         <van-overlay :show="show" @click="show = false">
             <div class="wrapper">
                 <div class="block" @click.stop>
@@ -109,10 +116,16 @@
                 userInfo: {},//个人地址信
                 search: '',
                 show: false,
+                isshow: false,
                 list: [],
+                minDate: new Date(2010, 0, 1),
+                maxDate: new Date(2025, 10, 1),
+                currentDate: new Date(),
+
                 active: 1,
-                item:{},
+                item: {},
                 isok: false,
+                isname: '自定义',
                 nianyue: '',
                 type: '',
                 id: '',
@@ -120,6 +133,12 @@
             }
         },
         created() {
+            var lis = {
+                yue: '自定义',
+                nianyue: '自定义',
+
+            };
+            this.list.push(lis);
             this.getDay(0);
             this.getDay(1);
             this.getDay(2);
@@ -145,7 +164,8 @@
             localStorage.setItem("token", this.token)
             // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAzMTY0MTU3fQ.USMjymu1Z2vTMNCcEYBEenRJOtNvIy2cKjBY6EVDjGV-95eZ1PRwCDxnnGCRxtVVeXWW1IuhsCiEuFdySOSg5w');
             // console.log(this.askPricePartIds)
-            this.nianyue = this.list[0].nianyue
+            this.nianyue = this.list[1].nianyue
+            console.log(this.nianyue)
             this.namelist()
         },
         mounted() {
@@ -169,7 +189,33 @@
 
         },
         methods: {
+            formatDate(date) {
+                var date = new Date(date)
+                var y = date.getFullYear()
+                var m = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1)
+                var d = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate())
+                return y + '-' + m + '-' + d
+            },
+            onConfirm(value) {
+                console.log(value)
+                var date = new Date(value)
+                var y = date.getFullYear()
+                var m = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1)
+                var d = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate())
+                var nianyue = y + '-' + m + '-' + d
+                var yue = m + '-' + d
 
+                var lis = {
+                    yue: yue,
+                    nianyue: nianyue,
+
+                };
+                this.nianyue = nianyue
+                this.isname = nianyue
+                this.list[0] = lis
+                this.namelist()
+                this.isshow = false;
+            },
             tongyi() {
                 // this.$toast
                 this.$dialog.confirm({
@@ -291,9 +337,10 @@
 
                 };
                 // console.log(week);
-                console.log(date1);
+
                 //   return tYear + "-" + tMonth + "-" + tDate;
                 this.list.push(lis);
+                console.log(this.list);
                 return tMonth + "-" + tDate + " ";
             },
             doHandleMonth(month) {
@@ -304,9 +351,22 @@
                 return m;
             },
             qiehuan(name, title) {
-                this.nianyue = name;
-                this.namelist()
+                if (name == this.isname) {
+                    console.log('asdadsasd')
+                    this.isshow = true
+                } else {
+                    this.nianyue = name;
+                    this.namelist()
+                }
+                // console.log(this.$toast(ind).message);
+                return
+            },
+            toqiehuan(e) {
 
+                console.log(e)
+            },
+            tiaozhuan(item) {
+                window.location.href = "quanbu_details.html?id=" + item.id + "&status=" + item.status + "&type=" + item.type + "&token=" + window.localStorage.getItem('token')
             },
             namelist() {
 

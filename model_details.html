@@ -31,6 +31,10 @@
         <van-nav-bar v-if="isok" title="车牌审核" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
         <div :style="{'padding-top':(isok?'46px':'')}">
             <van-cell-group>
+                <van-field v-model="addForm.name" required clearable label="姓名" placeholder="">
+                </van-field>
+                <van-field v-model="addForm.phone" required clearable label="手机号" placeholder="">
+                </van-field>
                 <van-field v-model="addForm.chexin" required clearable label="车型" placeholder="请输入车型"
                     :class="addForm.carModelAuth?'dd':'cc'"
                     :right-icon="auth !=1?addForm.carModelAuth == 0 ?'clear':'checked':''" readonly></van-field>
@@ -41,7 +45,7 @@
                 <van-field v-model="addForm.carVin" required clearable label="车架号" :class="addForm.carVinAuth?'dd':'cc'"
                     :right-icon="auth !=1?addForm.carVinAuth == '0'?'clear':'checked':''" placeholder="请输入车架号（Vin码）">
                 </van-field>
-                <van-field v-model="addForm.phone" readonly required clearable label="行驶证照片"
+                <van-field  readonly required clearable label="行驶证照片"
                     :class="addForm.carDriveAuth?'dd':'cc'"
                     :right-icon="auth !=1?addForm.carDriveAuth == 0 ?'clear':'checked':''"></van-field>
             </van-cell-group>
@@ -171,10 +175,15 @@
                 }
                 var parmas = {
                     id: this.addForm.id,
+                    carNo: this.addForm.carNo,
+                    carVin: this.addForm.carVin,
                     carDriveAuth: this.carDriveAuth ? '0' : '1',
                     carNoAuth: this.carNoAuth ? '0' : '1',
                     carVinAuth: this.carVinAuth ? '0' : '1',
                     carModelAuth: this.carModelAuth ? '0' : '1',
+                    // mallUserId:this.addForm.mallUserId,
+                    name: this.addForm.name,
+                    phone: this.addForm.phone,
                     auth: 0,
                 }
                 axios.post(`${baseURL}/vehicle/diy/mall/audit`, parmas,
@@ -197,6 +206,9 @@
                     id: this.addForm.id,
                     carVin: this.addForm.carVin,
                     carNo: this.addForm.carNo,
+                    name: this.addForm.name,
+                    phone: this.addForm.phone,
+                    // mallUserId:this.addForm.mallUserId,
                     carDriveAuth: 1,
                     carNoAuth: 1,
                     carVinAuth: 1,

@@ -37,11 +37,12 @@
             :style="{'padding-top':(isok?'46px':''),'position':(isok?'relative':'')}">
             <img class="beijintu" v-if="list.status == 0 || list.status == 1" src="img/dengdai.png" alt />
             <img class="beijintu" v-if="list.status == -1" src="img/quxiao.png" alt />
-            <img class="beijintu" v-if="list.status == 4" src="img/wancheng.png" alt />
+            <img class="beijintu" v-if="list.status == 4 || list.status == 2" src="img/wancheng.png" alt />
             <div class="zidong">
                 <div class="zidong_a">
                     <span v-if="list.status == 1">待预约</span>
                     <span v-if="list.status == 0">订单待付款</span>
+                    <span v-if="list.status == 2">待安装</span>
                     <span v-if="list.status == -1">订单已取消</span>
                     <span v-if="list.status == 4">订单已完成</span>
                 </div>
@@ -70,7 +71,7 @@
                 <div class="lis_h4">
                     <img class="menbiao left" src="img/chebiao.jpg" alt />
                     <span class="song left">{{list.carModel}}</span>
-                    <span class="right daoru" @click="daoru" v-if="list.type== '1' || list.type == '2'">导入工单</span>
+                    <span class="right daoru" @click="daoru" v-if="list.type != '3' || list.type != '4'|| list.type != '5'">导入工单</span>
                 </div>
                 <!-- <div class="lis_h3" style="color: #666;">2008款 2.0L 无极 标准版</div> -->
             </div>
@@ -234,6 +235,7 @@
                     .then(res => {
                         if (res.data.code == 200) {
                             this.$toast('导入成功！')
+                            this.namelist()
                         } else {
                             this.$toast(res.data.message)
                         }

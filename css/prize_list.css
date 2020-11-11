@@ -1,0 +1,107 @@
+body,html{
+    height: 100%;
+    overflow-y: auto;
+  }
+  .van-nav-bar__title{
+      font-size: 14px;
+  }
+  .hed_lis {
+    position: fixed;
+    /* top:46px; */
+    width: 100%;
+    /* position: relative; */
+    height: 40px;
+    background: #fff;
+    z-index: 99;
+    border-bottom: 1px solid #ebedf0;
+  }
+
+  .hhcc {
+    float: left;
+    font-size: 13px;
+    color: #646566;
+    width: 33.3%;
+    text-align: center;
+    line-height: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ord_lis{
+    overflow: hidden;
+    height: 100%;
+    background: #ebedf0;
+  }
+  .hua {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    margin-bottom: 5px;
+    width: 46px;
+    text-align: center;
+    margin-left: -23px;
+    height: 3px;
+    z-index: 1;
+    border-radius: 1.5px;
+  }
+  .shij{
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+  }
+  .pai_list {
+    margin: 8px 12px;
+    background: #fff;
+    overflow: hidden;
+    padding: 5px 15px 5px 12px;
+    border-radius: 5px;
+  }
+  .chepai {
+    color: #000093;
+    font-size: 14px;
+  }
+  .moren {
+    font-size: 12px;
+    background: #ffd2d2;
+    color: #ff7575;
+    line-height: 16px;
+    padding: 0 3px;
+    display: inline-block;
+  }
+  .renzheng {
+    font-size: 12px;
+    color: #666;
+  }
+  .h2{
+      font-size: 14px;
+      overflow: hidden;
+      line-height: 25px;
+      margin-top: 5px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #999;
+  }
+  .shanchu {
+    line-height: 16px;
+    font-size: 14px;
+    color: red;
+    text-align: right;
+  }
+  .chexinimg {
+    width: 45px;
+    height: 45px;
+  }
+  .che_h2 {
+    margin-left: 10px;
+  }
+  .c_h1 {
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .c_h2 {
+    font-size: 12px;
+    margin-top: 3px;
+    color: #666;
+    line-height: 20px;
+  }
+  .biankuang {
+    border: 2px solid #dc143c;
+  }
