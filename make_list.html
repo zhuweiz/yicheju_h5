@@ -366,6 +366,9 @@
                 console.log(e)
             },
             tiaozhuan(item) {
+                if(item.type == 1){
+                    return
+                }
                 window.location.href = "quanbu_details.html?id=" + item.id + "&status=" + item.status + "&type=" + item.type + "&token=" + window.localStorage.getItem('token')
             },
             namelist() {

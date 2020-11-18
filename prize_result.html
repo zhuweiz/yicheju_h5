@@ -81,6 +81,7 @@
                     <span v-if="list.type == 4">赠送积分：{{list.pname}}分</span>
                     <span v-if="list.type == 5">线下奖品：{{list.pname}}</span></div>
                 <div class="h3">抽奖时间：{{list.createdDate}}</div>
+                <!-- <div>{{token}}</div> -->
                 <van-button type="danger" class="anniu" @click="fafang">确认发放奖品</van-button>
             </div>
         </div>
@@ -101,6 +102,7 @@
                 list: {},
                 active: 0,
                 id: '',
+                token: "",
                 isok: false,
             }
         },
@@ -121,8 +123,11 @@
             }
             var search = window.location.search;
             this.search = window.location.href
-            this.token = getSearchString('token', search); //结果：18
+            // this.token = getSearchString('token', search); //结果：18
             this.id = getSearchString('id', search); //结果：18
+
+            this.token = window.androidjs.getLocalData("getToken");
+
             localStorage.setItem("token", this.token)
             // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjA1ODQyMzk2fQ.tRlZppyAO9TIAPY9_grKmtZzpvyw8NeOmP2dzsFroYZF4GdAiCbMg6O88e9fnpiZXkLwZI120lc2gEA9x4rkWQ');
             // console.log(this.askPricePartIds)
@@ -160,7 +165,6 @@
                 } else {
                     this.isok = true
                     console.log("andriod");
-                    console.log("andriod");
                 }
             },
             back() {
@@ -171,7 +175,8 @@
                 this.namelist()
             },
             fafang() {
-                axios.post(`${baseURL}/vehicle/luck/get/prize/` + this.list.id, data,
+                var _this = this
+                axios.post(`${baseURL}/vehicle/luck/get/prize/` + this.list.id,
                     { headers: { 'Authorization': window.localStorage.getItem('token') } })
                     .then(res => {
                         if (res.data.code == 200) {
