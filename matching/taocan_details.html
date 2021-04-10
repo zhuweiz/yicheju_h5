@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>套餐消费详情</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <!-- <script src="../js/http.js"></script> -->
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="./maintain.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .che_h2 {
+        width: 50%;
+    }
+
+    .shenqin {
+        border-top: 1px solid #f5f5f5;
+        font-size: 14px;
+        color: #666;
+        line-height: 20px;
+        padding-top: 8px;
+    }
+
+    .pai {
+        display: inline-block;
+        font-size: 12px;
+        color: #ffffff;
+        letter-spacing: 0;
+        text-align: center;
+        height: 26px;
+        line-height: 26px;
+        width: 72px;
+        background: url(..//img/chepaibj.png) no-repeat;
+        background-size: 100% 100%;
+    }
+
+    .c_h1 {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin-bottom: 2px;
+        width: 50%;
+        height: 25px;
+        margin-left: 55px;
+    }
+
+    .mian {
+        background: #fff;
+        border-radius: 4px;
+        margin: 0 12px;
+    }
+
+    .mian_a {
+        margin: 7px 12px;
+        padding: 8px 8px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        color: #666666;
+        font-family: PingFangSC-Regular;
+        font-size: 12px;
+        width: 100%;
+    }
+
+    .shu_a {
+        font-family: PingFangSC-Regular;
+        font-size: 12px;
+        color: #666666;
+        letter-spacing: 0;
+    }
+
+    .shu_b {
+        font-family: PingFangSC-Regular;
+        font-size: 14px;
+        color: #000000;
+        letter-spacing: 0;
+        margin-top: 5px;
+    }
+
+    .shu_c {
+        font-family: PingFangSC-Regular;
+        font-size: 12px;
+        color: #666666;
+        letter-spacing: 0;
+        margin-bottom: 5px;
+    }
+    .hed {
+  margin: 10px 10px;
+  border-radius: 4px;
+}
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ebedf0;height: 100%;" v-cloak>
+        <van-nav-bar title="套餐消费详情" left-arrow :fixed="true" :z-index="999"></van-nav-bar>
+        <van-cell-group class="hed" style="padding-top:46px;background: #ebedf0;">
+            <van-cell style="border-radius: 4px 4px 0 0;">
+                <van-row type="flex" justify="space-between">
+                    <van-col span="24" style="font-weight:bold;">套餐名称：{{info.comboName}}</van-col>
+                </van-row>
+            </van-cell>
+            <van-cell>
+                <van-row type="flex" justify="space-between">
+                    <van-col span="12" class="content">
+                        <span style="font-weight:bold;">客户：</span>
+                        <span style="color: #666;">{{info.customerName}}</span>
+                    </van-col>
+                    <van-col span="12" class="content" style="text-align:right;">
+                        <span style="font-weight:bold;">手机号：</span>
+                        <span style="color: #666;">{{info.phone}}</span>
+                    </van-col>
+                </van-row>
+            </van-cell>
+            <van-cell style="border-radius: 0px 0px 4px 4px;">
+                <van-row type="flex" justify="space-between">
+                    <van-col span="24" class="content">
+                        <span style="font-weight:bold;">车牌：</span>
+                        <div class="pai">{{info.carNo}}</div>
+                    </van-col>
+                </van-row>
+            </van-cell>
+        </van-cell-group>
+
+        <div class="mian">
+            <van-row type="flex" justify="space-between" class="shijian">
+                <div class="mian_a">
+                    <van-col span="12" class="content">办理时间：{{info.startDate.substring(0,10)}}</van-col>
+                    <van-col span="12" class="content" style="text-align:right;">失效时间：{{info.endDate.substring(0,10)}}
+                    </van-col>
+                </div>
+            </van-row>
+            <van-steps direction="vertical" :active="0" active-color="#DF3D48">
+                <van-step v-for="(v, index) in info.recordVOList" :key="index">
+                    <div class="shu_a">{{v.createdDate.substring(0,10)}}</div>
+                    <p class="shu_b">{{v.billNumber}}</p>
+                    <p class="shu_c">{{v.itemName}} {{v.count}}次</p>
+                </van-step>
+            </van-steps>
+        </div>
+
+
+        <!-- <van-cell>
+            <van-row type="flex" justify="space-between">
+                <van-col span="12" class="content">办理时间：{{info.startDate?info.startDate.substring(0,10):''}} </van-col>
+                <van-col span="12" class="content" style="text-align:right;">失效时间：{{info.endDate?info.endDate.substring(0,10):''}}
+                </van-col>
+            </van-row>
+        </van-cell>
+        <van-cell v-for="(v, index) in info.recordVOList" :key="index">
+            <van-row type="flex" justify="space-between" class="cent">
+                <van-col span="6" class="content">{{v.createdDate?v.createdDate.substring(0,10):''}}</van-col>
+                <van-col span="9" class="content">{{v.billNumber}}</van-col>
+                <van-col span="6" class="content">{{v.itemName}}</van-col>
+                <van-col span="3" class="content">{{v.count}}次</van-col>
+            </van-row>
+        </van-cell> -->
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                baoyan: JSON.parse(sessionStorage.getItem("baoyan")),
+                info: {},
+                active: 1,
+                tires: '',
+                id: '',
+                isok: false,
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.id = getSearchString('id', search); //结果：18
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+
+        },
+
+        methods: {
+
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                    console.log("andriod");
+                }
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/customer/combo/findRecordByComboCustomerId`, {
+                    params: { comboCustomerId: this.id }
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.info = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>预付款</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .hed {
+        position: fixed;
+        width: 100%;
+        background: red;
+        color: #fff;
+        top: 44px;
+        left: 0;
+        line-height: 45px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .van-row {
+        font-size: 14px;
+        text-align: center;
+        line-height: 40px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .bott {
+        position: fixed;
+        width: 100%;
+        height: 45px;
+        z-index: 99;
+        bottom: 0;
+        left: 0;
+        background: #fff;
+    }
+
+    .van-button {
+        width: 50%;
+        border-radius: 0;
+        border: none;
+        float: left;
+    }
+
+    .tanchuang {
+        width: 85%;
+        text-align: center;
+    }
+
+    .name {
+        line-height: 40px;
+        background: red;
+        color: #fff;
+    }
+
+    .t_bot {
+        line-height: 50px;
+        overflow: hidden;
+        margin: auto;
+        font-size: 14px;
+    }
+
+    .t_s {
+        width: 50%;
+        text-align: center;
+    }
+
+    .van-popup--center {
+        top: 40%;
+    }
+
+    .fanshi {
+        overflow: hidden;
+        font-size: 13px;
+        padding: 0 15px;
+        line-height: 40px;
+        color: #666;
+    }
+
+    .jiner {
+        color: #000;
+        text-indent: 5px;
+        width: 70px;
+        height: 18px;
+        border: 1px solid #f5f5f5;
+        line-height: 16px;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar left-arrow @click-left="back" :title="list.carNo +'预付款'" :fixed="true" :z-index="999"> <template
+                #right>
+                <van-icon @click="shuaxin" name="replay" size="18" />
+            </template></van-nav-bar>
+        <div class="hed">预付款:<span
+                style="font-size: 18px;font-weight: bold;vertical-align: middle;margin-left: 6px;">￥{{list.advanceMoney?list.advanceMoney.toFixed(2):'0.00'}}</span>
+        </div>
+        <!-- style="padding-top:86px;"
+        <!-- token：{{token}} -->
+        <div style="overflow: hidden;background: #fff;padding-top:90px">
+            <van-row>
+                <van-col span="5">操作时间</van-col>
+                <van-col span="5">金额</van-col>
+                <van-col span="4">收/支</van-col>
+                <van-col span="5">收款方式</van-col>
+                <van-col span="5">操作员</van-col>
+            </van-row>
+            <van-row style="font-size: 13px;" v-for="(item,idx) in list.advanceList" :key="idx">
+                <van-col span="5">{{item.bizDate.substr(5,11)}}</van-col>
+                <van-col span="5">
+                    <span style="color: red" v-if="item.type == 0">+{{item.amount}}</span>
+                    <span style="color: #3ac29f" v-else>-{{item.amount}}</span>
+                </van-col>
+                <van-col span="4">
+                    {{item.type == 0?'收':"支"}}
+                </van-col>
+                <van-col span="5">
+                    <span v-if="item.payType == 0">现金</span>
+                    <span v-if="item.payType == 1">支付宝</span>
+                    <span v-if="item.payType == 2">微信</span>
+                    <span v-if="item.payType == 3">银行卡</span>
+                    <span v-if="item.payType == 4">直赔到店</span>
+                </van-col>
+                <van-col span="5">{{item.realName}}</van-col>
+            </van-row>
+
+        </div>
+        <div class="bott">
+            <van-button class="an" type="danger" @click="tijiao(1)">收款</van-button>
+            <van-button class="an" type="primary" @click="tijiao(2)">退款</van-button>
+        </div>
+        <van-popup v-model="show" class="tanchuang">
+            <div class="name">收款</div>
+            <van-cell-group>
+                <van-field v-model="amount" type="number" label="金额" input-align="right" placeholder="请输入" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="value" label="收款方式" @click="tofangshi('shou')" readonly right-icon="arrow"
+                    input-align="right" placeholder="请选择" />
+            </van-cell-group>
+            <div class="fanshi" v-if="payTypes">
+                <div class="left">{{payTypes.name}}</div>
+                <div class="right">
+                    <span>金额</span>
+                    <!-- payTypes.amount -->
+                    <input class="jiner" type="number" type="text" v-model="payTypes.amount ">
+                </div>
+            </div>
+            <van-cell-group>
+                <van-field v-model="bizDate" label="收款时间" @click="toshijian('shou')" readonly right-icon="arrow"
+                    input-align="right" placeholder="请选择" />
+            </van-cell-group>
+            <div class="t_bot">
+                <div style="width:200px;overflow: hidden;margin: auto;">
+                    <div class="left t_s" style="color: red" @click="show =false">取消</div>
+                    <div class="left t_s" @click="shoutijiao">提交</div>
+                </div>
+            </div>
+        </van-popup>
+        <van-popup v-model="show2" class="tanchuang">
+            <div class="name" style="background: #0D906E;">退款</div>
+            <van-cell-group>
+                <van-field v-model="amount" type="number" label="金额" input-align="right" placeholder="请输入" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="value" label="退款方式" @click="tofangshi('tui')" readonly right-icon="arrow"
+                    input-align="right" placeholder="请选择" />
+            </van-cell-group>
+            <div class="fanshi" v-if="payTypes">
+                <div class="left">{{payTypes.name}}</div>
+                <div class="right">
+                    <span>金额</span>
+                    <!-- payTypes.amount -->
+                    <input class="jiner" type="number" type="text" v-model="payTypes.amount ">
+                </div>
+            </div>
+            <van-cell-group>
+                <van-field v-model="bizDate" @click="toshijian('tui')" label="退款时间" readonly right-icon="arrow"
+                    input-align="right" placeholder="请选择" />
+            </van-cell-group>
+            <div class="t_bot" class="tanchuang">
+                <div style="width:200px;overflow: hidden;margin: auto;">
+                    <div class="left t_s" style="color: red" @click="show2 =false">取消</div>
+                    <div class="left t_s" @click="tuitijiao">提交</div>
+                </div>
+            </div>
+        </van-popup>
+        <van-popup v-model="sjshow" position="bottom" :style="{ height: '40%' }">
+            <van-datetime-picker @cancel="sjshow = false" @confirm="sjqueren" v-model="currentDate" type="datetime"
+                title="选择完整时间" :min-date="minDate" :max-date="maxDate" />
+        </van-popup>
+        <van-popup v-model="fsshow" position="bottom" :style="{ height: '45%' }">
+            <van-picker title="" show-toolbar :default-index="2" value-key="name" :columns="columns"
+                @confirm="onConfirm" @cancel="onCancel" />
+        </van-popup>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                list: {
+
+                },//
+                orderNumber: '',
+                // columns: ['现金', '支付宝', '微信', '银行卡', '直赔到店'],
+                columns: [{ 'name': '现金', 'type': 0, 'amount': '0' },
+                { 'name': '支付宝', 'type': 1, 'amount': '0' },
+                { 'name': '微信', 'type': 2, 'amount': '0' },
+                { 'name': '银行卡', 'type': 3, 'amount': '0' },
+                { 'name': '直赔到店', 'type': 4, 'amount': '0' }],
+                minDate: new Date(2020, 0, 1),
+                maxDate: new Date(2025, 10, 1),
+                currentDate: new Date(),
+                payTypes: null,//支付方式
+                bizDate: "",//支付时间
+                amount: "",//支付金额
+                value: '',
+                show: false,
+                sjshow: false,
+                fsshow: false,
+                show2: false,
+                active: 1,
+                count: '',
+                token: '',
+                isok: false,
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.oid = getSearchString('oid', search); //结果：18
+            //获取安卓token
+
+            this.token = window.androidjs.getLocalData("getToken");
+            // this.token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjE4NTQ1MjEyfQ.L_upEnIeZZ3fZv4jq7mO4K4QTJuEoRiU06Ir-y5zohsP9maJT7UM-ZsBctXo1oMVK8j1J0Ljltr46dcL7pAmWg'
+            sessionStorage.setItem('h5token', this.token)
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            //选择支付方式
+            onConfirm(value, index) {
+                value.amount = this.amount ? this.amount : 0
+                this.payTypes = value
+
+                this.fsshow = false
+                console.log(value)
+            },
+            shuaxin() {
+                history.go(0)
+            },
+            //关闭支付方式弹窗
+            onCancel() {
+                this.fsshow = false
+            },
+            back() {
+                //返回首页
+                // window.androidjs.onCallbackIntent("MainActivity");
+                //回退上一页
+                window.androidjs.onCallbackIntent("Finish");
+            },
+
+            toshijian(item) {
+
+                this.sjshow = true
+            },
+            //确定时间
+            sjqueren(value) {
+                let sday = this.formatTime(value, 'yyyy-MM-dd hh:mm:ss')
+                this.bizDate = sday
+                this.sjshow = false
+                console.log(sday)
+            },
+            //打开选择支付方式
+            tofangshi(item) {
+                this.payTypes = null
+                this.fsshow = true
+            },
+            //去修改
+            banli(item) {
+                sessionStorage.setItem("banli", JSON.stringify(this.list));
+                location.href = "verification_banli.html"
+            },
+            formatTime: function (date, fmt) {
+                var date = new Date(date);
+                if (/(y+)/.test(fmt)) {
+                    fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+                }
+                var o = {
+                    'M+': date.getMonth() + 1,
+                    'd+': date.getDate(),
+                    'h+': date.getHours(),
+                    'm+': date.getMinutes(),
+                    's+': date.getSeconds()
+                };
+                for (var k in o) {
+                    if (new RegExp('(' + k + ')').test(fmt)) {
+                        var str = o[k] + '';
+                        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? str : ('00' + str).substr(str.length));
+                    }
+                }
+                return fmt;
+            },
+            //退款提交
+            tuitijiao() {
+                if (this.amount == '') {
+                    this.$toast.fail('请先输入金额')
+                    return
+                } else if (this.payTypes == null) {
+                    this.$toast.fail('请选择退款方式')
+                    return
+                } else if (this.amount != this.payTypes.amount) {
+                    this.$toast.fail('请检查金额')
+                    return
+                } else if (this.bizDate == '') {
+                    this.$toast.fail('请选择退款时间')
+                    return
+                }
+                var data = {
+                    "bizDate": this.bizDate,
+                    "oid": this.oid,
+                    "payTypes": this.payTypes
+                }
+                axios({
+                    url: `${baseURL}/vehicle/order/refundOrderAdvance`,
+                    method: 'post', data, // query参数
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    console.log(res)
+                    if (res.data.success == true) {
+                        this.$toast("退款成功!");
+                        this.namelist()
+                        this.show2 = false
+                    } else {
+                        this.$toast.fail(res.data.message)
+                    }
+                })
+            },
+            //收款提交
+            shoutijiao() {
+                if (this.amount == '') {
+                    this.$toast.fail('请先输入金额')
+                    return
+                } else if (this.payTypes == null) {
+                    this.$toast.fail('请选择收款方式')
+                    return
+                } else if (this.amount != this.payTypes.amount) {
+                    this.$toast.fail('请检查金额')
+                    return
+                } else if (this.bizDate == '') {
+                    this.$toast.fail('请选择收款时间')
+                    return
+                }
+                var data = {
+                    "bizDate": this.bizDate,
+                    "oid": this.oid,
+                    "payTypes": this.payTypes
+                }
+                axios({
+                    url: `${baseURL}/vehicle/order/payOrderAdvance`,
+                    method: 'post', data, // query参数
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    console.log(res)
+                    if (res.data.success == true) {
+                        this.$toast("收款成功!");
+                        this.namelist()
+                        this.show = false
+                    } else {
+                        this.$toast.fail(res.data.message)
+                    }
+                })
+            },
+            tijiao(item) {
+                this.amount = ''
+                this.bizDate = ''
+                this.payTypes = null
+                if (item == 1) {
+                    this.show = true
+                } else {
+                    this.show2 = true
+                }
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/order/queryAdvanceDetail`, {
+                    params: {
+                        oid: this.oid,
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

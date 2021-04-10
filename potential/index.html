@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>潜在项目列表</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <!-- <script src="../js/http.js"></script> -->
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <!-- <link rel="stylesheet" href="./matching.css"> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    body {
+        background: #f5f5f5;
+    }
+
+    .hed_lis {
+        position: fixed;
+        top: 46px;
+        width: 100%;
+        /* position: relative; */
+        height: 40px;
+        background: #fff;
+        z-index: 99;
+        border-bottom: 1px solid #ebedf0;
+    }
+
+    .hhcc {
+        float: left;
+        font-size: 13px;
+        color: #646566;
+        width: 25%;
+        text-align: center;
+        line-height: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ord_lis {
+        overflow: hidden;
+        height: 100%;
+        background: #ebedf0;
+    }
+
+    .hua {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        margin-bottom: 5px;
+        width: 46px;
+        text-align: center;
+        margin-left: -23px;
+        height: 3px;
+        z-index: 1;
+        background-color: #0d906e;
+        border-radius: 1.5px;
+    }
+
+    .pai_list {
+        background: #fff;
+        margin: 12px 10px;
+        border-radius: 8px;
+        color: #333;
+    }
+
+    .van-row {
+        line-height: 38px;
+        border-bottom: 1px solid #f5f5f5;
+        font-size: 14px;
+        padding: 0 12px;
+
+    }
+
+    .h1_beijin {
+        background: #fab52c;
+        /* background: #b3b3b3; */
+        border-radius: 8px 8px 0 0;
+        color: #fff;
+        font-size: 15px;
+    }
+    .h2_beijin{
+        background: #C0C0C0;
+        /* background: #b3b3b3; */
+        border-radius: 8px 8px 0 0;
+        color: #fff;
+        font-size: 15px;
+    }
+    .hes_name {
+        color: #999;
+        line-height: 25px;
+        margin-top: 5px;
+    }
+
+    .hes_b {
+        line-height: 30px;
+        min-height: 30px;
+    }
+
+    .xm {
+        width: 50%;
+    }
+
+    .dengji {
+        line-height: 25px;
+        color: #666;
+    }
+
+    .van-radio {
+        line-height: 40px;
+        height: 40px;
+        text-align: center;
+        width: 90px;
+        margin: auto;
+        font-size: 15px;
+    }
+
+    .van-dialog__header {
+        padding-top: 15px;
+    }
+
+    .xg_dengji {
+        width: 90%;
+        border: 1px solid #999;
+        top: 45%;
+    }
+
+    .h1 {
+        line-height: 45px;
+        text-align: center;
+        background: #D3D3D3;
+        color: #fff;
+    }
+
+    .t_bot {
+        line-height: 50px;
+        overflow: hidden;
+        margin: auto;
+    }
+
+    .t_s {
+        width: 50%;
+        text-align: center;
+    }
+
+    .anniu {
+        width: 100px;
+        border: 1px solid #dcdcdc;
+        line-height: 35px;
+        text-align: center;
+        display: inline-block;
+        margin-top: 10px;
+        border-radius: 4px;
+        box-shadow: 0 0.05333rem 0.13333rem 0.02667rem rgba(0, 0, 0, .06);
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #f5f5f5;height: 100%;" v-cloak>
+        <van-nav-bar title="潜在项目登记列表" :fixed="true" :z-index="999">   <template #right>
+            <van-icon @click="shuaxin" name="replay" size="18" />
+        </template></van-nav-bar>
+        <div class="hed_lis">
+            <div class="hhcc" @click="qiehuan(0)">
+                待跟进
+                <div class="hua" v-if="active == '0'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(2)">
+                已处理
+                <div class="hua" v-if="active == '2'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(3)">
+                已逾期
+                <div class="hua" v-if="active == '3'"></div>
+            </div>
+        </div>
+        <!-- <van-search v-model="value" show-action placeholder="输入相关关键词">
+            <template #action>
+                <van-button class="shou" type="primary" size="small">搜索</van-button>
+
+            </template>
+        </van-search> -->
+        <!-- style="padding-top:86px;" -->
+        <div style="overflow: hidden;padding-top:86px">
+            <van-list v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+                @load="onLoads" :offset="10">
+                <!-- v-for="(item,idx) in list" :key="idx" -->
+                <div class="pai_list" v-for="(item,idx) in list" :key="idx">
+                    <div style="overflow: hidden;padding: 2px 0px 2px 2px;">
+                        <van-row :class="active == '0'?'h1_beijin':'h2_beijin'">
+                            <van-col span="14">{{item.carNo}}</van-col>
+                            <van-col span="10" style="text-align: right;">
+                                <span v-if="active == '0'">意向{{item.level}}</span>
+                                <span v-if="active == '2'">
+                                    <span v-if="item.status == 1">已达成</span>
+                                    <span v-if="item.status == 2" style="color: red">已作废</span>
+                                </span>
+                                <span v-if="active == '3'">意向{{item.level}}</span>
+                            </van-col>
+                        </van-row>
+                        <van-row>
+                            <van-col span="14">
+                                <div class="hes_name">客户姓名</div>
+                                <div class="hes_b">{{item.customerName}}</div>
+                            </van-col>
+                            <van-col span="10" style="text-align: right;">
+                                <div class="hes_name">手机</div>
+                                <div class="hes_b">{{item.phone}}</div>
+                            </van-col>
+                        </van-row>
+                        <van-row>
+                            <van-col span="24">
+                                <div class="hes_name">
+                                    <span class="left xm">项目名称</span>
+                                    <span class="left xm" style="text-align: right;">{{item.item}}</span>
+                                </div>
+                                <div class="hes_b">
+                                    <span class="left xm">右前门框喷漆</span>
+                                    <span class="left xm"
+                                        style="text-align: right;">{{item.consumeDate.substring(0, 10)}}
+                                        {{item.consumeDay}}天后</span>
+                                </div>
+                            </van-col>
+                        </van-row>
+                        <van-row style="border-bottom:none;">
+                            <van-col span="24" style="padding: 8px 0">
+                                <div class="left" style="width: 65%">
+                                    <div class="dengji">报价：￥{{item.itemPrice}}</div>
+                                    <div class="dengji">登记时间：{{item.createdDate.substring(0, 10)}}</div>
+                                    <div class="dengji">登记人：{{item.registerName}}</div>
+                                    <div class="dengji">备注：{{item.des}}</div>
+                                </div>
+                                <div class="left" style="width: 35%;text-align: right;" v-if="active == '0'">
+                                    <div class="anniu" style="color: red" @click="guanbi(item,idx)">关闭</div>
+                                    <div class="anniu" @click="toxiugai(item,idx)">修改</div>
+                                </div>
+
+                            </van-col>
+                        </van-row>
+                        <van-row style="border-top:1px solid #f5f5f5;border-bottom:none;" v-if="active != '0'">
+                            <van-col span="14" >
+                                <span v-if="active == '2'">跟进人 <span style="margin-left: 20px">{{item.followUpName}}</span></span>
+                                <span v-if="active == '3'" style="color: red;font-size: 16px;">逾期关闭</span>
+                            </van-col>
+                            <van-col span="10" style="text-align: right;">{{item.lastModifiedDate}}</van-col>
+                        </van-row>
+
+                    </div>
+                </div>
+            </van-list>
+            <van-empty v-if="list.length < 1" description="暂无数据~" />
+        </div>
+        <van-dialog v-model="show" title="关闭潜在项目" show-cancel-button @confirm="gb_queding">
+            <!-- <van-checkbox icon-size="16px" style="margin-top: 10px" v-model="type">已达成</van-checkbox>
+            <van-checkbox icon-size="16px" v-model="type">已作废</van-checkbox> -->
+
+            <van-radio-group v-model="radio">
+                    <van-radio icon-size="16px" name="1">已达成</van-radio>
+                    <van-radio icon-size="16px" name="2">已作废</van-radio>
+                  </van-radio-group>
+        </van-dialog>
+        <van-popup v-model="showqian" class="xg_dengji">
+            <div class="h1">潜在项目修改</div>
+            <van-cell-group>
+                <van-field input-align="right" v-model="item.customerName" label="姓名" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field input-align="right" v-model="item.phone" label="手机" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field input-align="right" v-model="item.item" label="项目名称" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field input-align="right" v-model="item.consumeDay" label="预计消费">
+                    <template #button>
+                        <span>天后</span>
+                    </template>
+                </van-field>
+            </van-cell-group>
+            <van-cell-group>
+                <van-field @click="togaozhong(item)" placeholder="(高、中、低)" readonly input-align="right"
+                    right-icon="arrow" v-model="item.level" label="意向度">
+            </van-cell-group>
+            <van-cell-group>
+                <van-field input-align="right" v-model="item.itemPrice" label="报价">
+                    <template #button>
+                        <span>元</span>
+                    </template>
+                </van-field>
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="item.des" rows="3" autosize label="" type="textarea" maxlength="100"
+                    placeholder="请填写描述信息" show-word-limit />
+            </van-cell-group>
+
+            <div class="t_bot">
+                <!-- tijiao(item) -->
+                <div style="width: 150px;overflow: hidden;margin: auto;">
+                    <div class="left t_s" style="color: red" @click="showqian = false">关闭</div>
+                    <div class="left t_s" @click="add_xiugai">修改</div>
+                </div>
+            </div>
+        </van-popup>
+        <van-popup v-model="show2" position="bottom" :style="{ height: '40%' }" />
+        <van-picker title="选择" show-toolbar :columns="columns" @confirm="onConfirm" @cancel="onCancel" />
+        </van-popup>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                columns: ['高', '中', '低',],
+                radio: '1',
+                show: false,
+                show2: false,
+                showqian: false,
+                checked: false,
+                type: 1,
+                item: {},
+                idx: null,
+                search: '',
+                value: '',
+                list: [],
+                active: 0,
+                count: '',
+                isok: false,
+                loading: false,
+                page: 0,
+                size: 20,
+                total: 0,
+                finished: false
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.gid = getSearchString('gid', search); //结果：18
+            this.type = getSearchString('type', search); //结果：18
+            this.token = window.androidjs.getLocalData("getToken");
+            sessionStorage.setItem("h5token", this.token);
+
+            // this.token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzNDk0IiwiZXhwIjoxNjE4Nzk0MjI2fQ.j4sW0hELEYm74R-vQKX2Ytrukg9IknxeUvTMdh4n3M4Uw3IJ8aM8j0HA6ns8D0tBWV5yUrvGa_1nfb5c6k3bAQ';
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            shuaxin() {
+                history.go(0)
+            },
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            //关闭
+            guanbi(item, idx) {
+                this.idx = idx
+                this.item = JSON.parse(JSON.stringify(item));
+                this.show = true
+            },
+            //选择高中低确定
+            onConfirm(value, index) {
+                console.log(this.idx)
+                this.item.level = value
+                this.show2 = false
+            },
+            onCancel() {
+                console.log('asdasd')
+                this.show2 = false
+            },
+            //高中低弹窗
+            togaozhong(idx) {
+                // this.idx = idx
+                this.show2 = true
+            },
+            //去修改
+            toxiugai(item, idx) {
+                // sessionStorage.setItem("baoyan", JSON.stringify(item));
+                this.idx = idx
+                this.item = JSON.parse(JSON.stringify(item));
+                this.showqian = true
+                // location.href = "xiugai.html"
+            },
+            add_xiugai() {
+                axios({
+                    url: `${baseURL}/vehicle/check/order/update/hideItem`,
+                    method: 'post',
+                    data: this.item, // query参数
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.$toast.success('修改成功')
+                        this.list[this.idx] = res.data.data
+                        this.showqian = false
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+            gb_queding(){
+                axios({
+                    url: `${baseURL}/vehicle/check/order/update/`+this.item.id+'/'+this.radio,
+                    method: 'post',
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list.splice(this.idx,1)
+                        this.$toast.success('关闭成功')
+                        // this.list[this.idx] = res.data.data
+                        // this.showqian = false
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+                console.log(this.radio)
+            },
+            qiehuan(row) {
+                this.active = row;
+                this.list = []
+                this.page = 0
+
+                this.namelist()
+            },
+            onLoads() {
+                this.page++;
+                this.namelist();
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/check/order/hide/item/page`, {
+                    params: {
+                        gid: this.gid,
+                        status: this.active,
+                        type: this.type,
+                        page: this.page,
+                        size: this.size
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        if (res.data.data) {
+                            // this.list = res.data.data.vinPage.content
+                            let rows = res.data.data.content
+                            this.loading = false;
+                            this.total = res.data.data.totalElements
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.finished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.list = this.list.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.list.length >= this.total) {
+                                this.finished = true;
+                            }
+                        } else {
+                            this.list = []
+                        }
+
+
+
+                        this.count = res.data.data.count
+                        console.log(this.list)
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

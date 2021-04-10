@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>车型配件匹配</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <!-- <script src="../js/http.js"></script> -->
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="./matching.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .che_h2 {
+        width: 50%;
+    }
+
+    .shenqin {
+        border-top: 1px solid #f5f5f5;
+        font-size: 14px;
+        color: #666;
+        line-height: 20px;
+        padding-top: 8px;
+    }
+
+    .c_h1 {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin-bottom: 2px;
+        width: 50%;
+        height: 25px;
+        margin-left: 55px;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar title="车型配件匹配" :fixed="true" :z-index="999"></van-nav-bar>
+        <div class="hed_lis">
+            <div class="hhcc" @click="qiehuan(1)">
+                未匹配
+                <div class="hua" v-if="active == '1'"></div>
+            </div>
+            <div class="hhcc" @click="qiehuan(0)">
+                已匹配
+                <div class="hua" v-if="active == '0'"></div>
+            </div>
+            <div class="kehushu">客户数：<span style="color: #3ac29f">{{count}}</span> 位</div>
+        </div>
+        <van-search v-model="value" show-action placeholder="输入相关关键词">
+            <template #action>
+                <van-button class="shou" type="primary" size="small">搜索</van-button>
+
+            </template>
+        </van-search>
+        <!-- style="padding-top:86px;" -->
+        <div style="overflow: hidden;background: #fff;padding-top:141px">
+            <van-list v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+                @load="onLoads" :offset="10">
+                <div class="pai_list" v-for="(item,idx) in list" :key="idx" @click="renzhen(item)">
+                    <div style="overflow: hidden;padding: 6px 15px 0px 15px;">
+                        <div style="overflow: hidden;" class="h1">
+                            <div class="left che">车牌：{{item.carNo}}</div>
+                            <div class="left vi">vin：{{item.vinCode}}</div>
+                        </div>
+                        <div style="overflow: hidden;" class="h1">
+                            <div class="left che">车型：{{item.carBrand}}-{{item.carModel}}</div>
+                            <div class="left vi">保养机油：{{item.dataTips}}</div>
+                        </div>
+                        <div style="overflow: hidden;" class="h1" v-if="active == '1'">
+                            <div class="left che">年份：{{item.year}}</div>
+                            <div class="left vi">排量：{{item.combineName}}</div>
+                        </div>
+                        <div style="overflow: hidden;" class="h1" v-if="active == '1'">
+                            厂家：{{item.manufacturers}}
+                        </div>
+                        <div style="overflow: hidden;" class="h1" v-if="active == '0'">
+                            轮胎：{{item.tires}}
+                        </div>
+                        <div style="overflow: hidden;" class="h1" v-if="active == '0'">
+                            机油：{{item.nome}}
+                        </div>
+                        <div style="overflow: hidden;" class="h1 c999">
+                            <div class="left che">姓名：{{item.customerName}}</div>
+                            <div class="left vi">电话：{{item.phone}}</div>
+                        </div>
+                    </div>
+                    <!-- v-if="active == '1'" -->
+                    <div style="overflow: hidden;" class="baoyang">
+                        <van-button class="right m-r-10" style="margin-top: 3px" plain type="danger" size="mini"
+                            @click="toxinzeng(item)">新增保养车型
+                        </van-button>
+                        <van-button class="right m-r-10" style="margin-top: 3px" plain type="primary" size="mini"
+                            @click="tobaoyang(item)">去保养库匹配</van-button>
+                        <van-button class="right m-r-10" style="margin-top: 3px" plain type="default" size="mini"
+                            @click="toxiugai(item)">修改车辆信息</van-button>
+                    </div>
+                </div>
+            </van-list>
+            <van-empty v-if="list.length < 1" description="暂无数据~" />
+        </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                value: '',
+                list: [],
+                active: 1,
+                count: '',
+                isok: false,
+                loading: false,
+                page: 0,
+                size: 6,
+                total: 0,
+                finished: false
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            // this.token = getSearchString('token', search); //结果：18
+            // localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjA4NzA2NzMzfQ.Qokbn2rZrv1Ri-g8tN7wqkVKbH0IVSrvd01ZbmP80DzJUf3sAhHn_nmax_fZiUr7edKSMripawYoVYrDqagJZw');
+            // console.log(this.askPricePartIds)
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            // renzhen(item) {
+            //     sessionStorage.setItem('isok2', 'true');
+            //     location.href = "model_details.html?id=" + item.id + "&auth=" + this.active
+            // },
+            tobaoyang(item) {
+                sessionStorage.setItem("baoyan", JSON.stringify(item));
+                // console.log('dianji')
+                location.href = "maintain.html"
+            },
+            toxinzeng(item) {
+                sessionStorage.setItem("baoyan", JSON.stringify(item));
+                location.href = "addchexin.html"
+            },
+            //去修改
+            toxiugai(item) {
+                sessionStorage.setItem("baoyan", JSON.stringify(item));
+                location.href = "change_information.html"
+            },
+            qiehuan(row) {
+                this.list = []
+                this.page = 0
+                this.active = row;
+                this.namelist()
+            },
+            onLoads() {
+                this.page++;
+                this.namelist();
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/diy/mall/vin/page`, {
+                    params: {
+                        status: this.active, status: this.active, page: this.page,
+                        size: this.size
+                    },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        if (res.data.data.vinPage) {
+                            // this.list = res.data.data.vinPage.content
+                            let rows = res.data.data.vinPage.content
+                            this.loading = false;
+                            this.total = res.data.data.vinPage.totalElements
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.finished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.list = this.list.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.list.length >= this.total) {
+                                this.finished = true;
+                            }
+                        } else {
+                            this.list = []
+                        }
+
+
+
+                        this.count = res.data.data.count
+                        console.log(this.list)
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

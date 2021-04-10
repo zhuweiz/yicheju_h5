@@ -71,7 +71,8 @@
                 <div class="lis_h4">
                     <img class="menbiao left" src="img/chebiao.jpg" alt />
                     <span class="song left">{{list.carModel}}</span>
-                    <span class="right daoru" @click="daoru" v-if="list.type != '3' || list.type != '4'|| list.type != '5'">导入工单</span>
+                    <span class="right daoru" @click="daoru"
+                        v-if="list.type != '3' || list.type != '4'|| list.type != '5'">导入工单</span>
                 </div>
                 <!-- <div class="lis_h3" style="color: #666;">2008款 2.0L 无极 标准版</div> -->
             </div>
@@ -173,6 +174,7 @@
                 search: '',
                 list: {},
                 id: null,
+                isok: '',
                 status: '',
                 type: ""
             }
@@ -194,12 +196,13 @@
             }
             var search = window.location.search;
             this.search = window.location.href
-            this.token = getSearchString('token', search); //结果：18
+            this.token = window.androidjs.getLocalData("getToken");
             this.id = getSearchString('id', search); //结果：18
             this.status = getSearchString('status', search); //结果：18
             this.type = getSearchString('type', search); //结果：18
-            localStorage.setItem("token", this.token)
-            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk5OTgzNDI5fQ.2xv5tg4qArYllgMKoNVHUdYx9MaFZWN5Vx5uDsx_ZwB02WoY4oIwEQoN9JqoLKH8q-J_Zkrb20Fw9DVltXB1qQ');
+            this.isok = getSearchString('isok', search); //结果：18
+            sessionStorage.setItem("token", this.token)
+            // sessionStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNTk5OTgzNDI5fQ.2xv5tg4qArYllgMKoNVHUdYx9MaFZWN5Vx5uDsx_ZwB02WoY4oIwEQoN9JqoLKH8q-J_Zkrb20Fw9DVltXB1qQ');
             // console.log(this.askPricePartIds)
             if (this.id) {
                 console.log('asdas')
@@ -231,7 +234,7 @@
             },
             daoru() {
                 let data = this.list
-                axios.post(`${baseURL}/vehicle/diy/mall/input/order`, data, { headers: { 'Authorization': window.localStorage.getItem('token') } })
+                axios.post(`${baseURL}/vehicle/diy/mall/input/order`, data, { headers: { 'Authorization': window.sessionStorage.getItem('token') } })
                     .then(res => {
                         if (res.data.code == 200) {
                             this.$toast('导入成功！')
@@ -242,17 +245,32 @@
                     })
             },
             namelist() {
-                axios.get(`${baseURL}/vehicle/diy/mall/order/details`, {
-                    params: { id: this.id, type: this.type },
-                    headers: { 'Authorization': window.localStorage.getItem('token') },
-                }).then(res => {
-                    // console.log(res.data.data)
-                    if (res.data.code == 200) {
-                        this.list = res.data.data
-                    } else {
-                        this.$toast(res.data.message)
-                    }
-                })
+                if (this.isok) {
+                    axios.get(`${baseURL}/vehicle/diy/mall/order/details/new`, {
+                        params: { number: this.id },
+                        headers: { 'Authorization': window.sessionStorage.getItem('token') },
+                    }).then(res => {
+                        // console.log(res.data.data)
+                        if (res.data.code == 200) {
+                            this.list = res.data.data
+                        } else {
+                            this.$toast(res.data.message)
+                        }
+                    })
+                } else {
+                    axios.get(`${baseURL}/vehicle/diy/mall/order/details`, {
+                        params: { id: this.id, type: this.type },
+                        headers: { 'Authorization': window.sessionStorage.getItem('token') },
+                    }).then(res => {
+                        // console.log(res.data.data)
+                        if (res.data.code == 200) {
+                            this.list = res.data.data
+                        } else {
+                            this.$toast(res.data.message)
+                        }
+                    })
+                }
+
             },
         }
     })

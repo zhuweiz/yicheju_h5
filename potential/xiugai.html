@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>修改</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <link rel="stylesheet" href="../css/jianpan.css" />
+    <!-- <script src="../js/http.js"></script> -->
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <!-- <link rel="stylesheet" href="./matching.css"> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    .miaoshu .van-field__control {
+        background: #f5f5f5;
+        text-indent: 10px
+    }
+
+    .boton {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 99;
+        background: #fff;
+        border-top: 1px solid #ebedf0;
+        height: 50px;
+
+    }
+
+    .van-button {
+        margin: auto;
+        margin-top: 5px;
+        display: block;
+        width: 200px;
+        line-height: 40px;
+        height: 40px;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #fff;height: 100%;" v-cloak>
+        <van-nav-bar title="修改潜在项目" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div style="overflow: hidden;padding-top:46px;">
+            <van-cell-group>
+                <van-field @click="isShow = true" readonly v-model="car" label="车牌" placeholder="输入车牌"
+                    input-align="right" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="value" label="姓名"  placeholder="输入姓名" input-align="right" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="value" label="手机" placeholder="输入手机号码" input-align="right" />
+            </van-cell-group>
+            <van-cell-group style="border-top: 10px solid #f5f5f5;">
+                <van-field v-model="value" label="项目" placeholder="输入项目名称" input-align="right" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="value" label="报价" input-align="right">
+                    <template #button>
+                        <span>元</span>
+                    </template>
+                </van-field>
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="value" label="意向度" @click="show2 = true" placeholder="(高、中、低)" readonly
+                    input-align="right" right-icon="arrow" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="value" label="预计消费" input-align="right">
+                    <template #button>
+                        <span>天后</span>
+                    </template>
+                </van-field>
+            </van-cell-group>
+            <van-cell-group>
+                <van-field class="miaoshu" v-model="message" rows="5" autosize label="" type="textarea" maxlength="100"
+                    placeholder="请写描述信息" show-word-limit />
+            </van-cell-group>
+        </div>
+
+        <div class="boton">
+            <van-button type="info" @click="keyState = true">保存</van-button>
+        </div>
+        <van-popup v-model="show2" position="bottom" :style="{ height: '40%' }" />
+        <van-picker title="选择" show-toolbar :columns="columns" @confirm="onConfirm" @cancel="onCancel" />
+        </van-popup>
+        <!-- 输入车牌键盘 -->
+        <div class='panel-wrap' v-if="isShow" data-value="exit">
+            <div class="vehicle-panel" :style="{background:backgroundColor}">
+                <!-- height:'500rpx'; -->
+                <div class='topItem'>
+                    <span class='check' @click='vehicleTap("check")'>中/英</span>
+                    <span class='contentShow'>{{car}}</span>
+                    <span class='exit' @click='vehicleTap("exit")'>取消</span>
+
+                </div>
+                <!--省份简写键盘-->
+                <div v-if="keyBoardType === 1">
+                    <div class="vehicle-panel-row">
+                        <div class='vehicle-panel-row-button' :style="{border:buttonBorder}"
+                            v-for="(item,idx) in keyVehicle1" @click='vehicleTap(item,"字")' :key="idx+item">{{item}}
+                        </div>
+                    </div>
+                    <div class="vehicle-panel-row">
+                        <div class='vehicle-panel-row-button' :style="{border:buttonBorder}"
+                            v-for="(item,idx) in keyVehicle2" @click='vehicleTap(item,"字")' :key="idx+item">{{item}}
+                        </div>
+                    </div>
+                    <div class="vehicle-panel-row">
+                        <div class='vehicle-panel-row-button' :style="{border:buttonBorder}"
+                            v-for="(item,idx) in keyVehicle3" @click='vehicleTap(item,"字")' :key="idx+item">
+                            {{item}}
+                        </div>
+                        <div :style="{border:buttonBorder}"
+                            class='vehicle-panel-row-button vehicle-panel-row-button-img'>
+                            <img src='../img/sc.png' class='vehicle-en-button-delete' @click='vehicleTap("delete")'
+                                mode='aspectFit'>
+
+                        </div>
+                    </div>
+
+                    <div class="vehicle-panel-row-last">
+                        <div class='vehicle-panel-row-button vehicle-panel-row-button-last' @click='vehicleTap(item)'
+                            v-for="(item,idx) in keyVehicle4" :style="{border:buttonBorder}" :key="idx+item">{{item}}
+                        </div>
+                    </div>
+                </div>
+                <!--英文键盘  -->
+                <div v-else>
+                    <div class="vehicle-panel-row">
+                        <div class='vehicle-panel-row-button vehicle-panel-row-button-number' @click='vehicleTap(item)'
+                            v-for="(item,idx) in keyNumber" :style="{border:buttonBorder}" :key="item+idx">{{item}}
+                        </div>
+                    </div>
+                    <div class="vehicle-panel-row">
+                        <div class='vehicle-panel-row-button' :style="{border:buttonBorder}"
+                            v-for="(item,idx) in keyEnInput1" @click='vehicleTap(item)' :key="idx+item">{{item}}</div>
+                    </div>
+                    <div class="vehicle-panel-row">
+                        <div class='vehicle-panel-row-button' :style="{border:buttonBorder}"
+                            v-for="(item,idx) in keyEnInput2" @click='vehicleTap(item)' :key="idx+item">{{item}}</div>
+                        <div :style="{border:buttonBorder}"
+                            class='vehicle-panel-row-button vehicle-panel-row-button-img'>
+                            <img src='../img/sc.png' class='vehicle-en-button-delete' @click='vehicleTap("delete")'
+                                mode='aspectFit'>
+                        </div>
+                    </div>
+                    <div class="vehicle-panel-row-last">
+                        <div class='vehicle-panel-row-button vehicle-panel-row-button-last' @click='vehicleTap(item)'
+                            :style="{border:buttonBorder}" v-for="(item,idx) in keyEnInput3" :key="idx+item">{{item}}
+                        </div>
+                        <div :style="{border:buttonBorder}" class='vehicle-panel-row-button vehicle-panel-ok'
+                            @click='vehicleTap("ok")'>确定</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 输入车牌键盘 -->
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                // 输入车牌键盘
+                keyVehicle1: ["陕", "京", "津", "沪", "冀", "豫", "云", "辽"],
+                keyVehicle2: ["黑", "湘", "皖", "鲁", "新", "苏", "浙", "赣"],
+                keyVehicle3: ["鄂", "桂", "甘", "晋", "蒙", "吉", "闽"],
+                keyVehicle4: ["粤", "川", "青", "藏", "琼", "宁", "贵", "渝"],
+                keyNumber: "1234567890",
+                keyEnInput1: "QWERTYUIOP",
+                keyEnInput2: "ASDFGHJKL",
+                keyEnInput3: "ZXCVBNM",
+                backgroundColor: "#fff",
+                keyBoardType: 1,
+                buttonBorder: "1px solid #ccc",
+                isShow: false,
+                // 输入车牌键盘
+                show2: false,
+                columns: ['高', '中', '低',],
+                str: "",
+                car: '',
+                userInfo: {},//个人地址信
+                search: '',
+                value: '',
+                message: '',
+                list: [],
+                active: 1,
+                count: '',
+                isok: false,
+                loading: false,
+                page: 0,
+                size: 6,
+                total: 0,
+                finished: false
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            // this.token = getSearchString('token', search); //结果：18
+            // localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjA4NzA2NzMzfQ.Qokbn2rZrv1Ri-g8tN7wqkVKbH0IVSrvd01ZbmP80DzJUf3sAhHn_nmax_fZiUr7edKSMripawYoVYrDqagJZw');
+            // console.log(this.askPricePartIds)
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            // 输入车牌键盘
+            vehicleTap: function (event, item) {
+                console.log(event);
+                console.log(item);
+                switch (event) {
+
+                    case "delete":
+                        console.log(event);
+                        this.$emit("delete");
+                        this.$emit("inputchange", event);
+                        this.car = this.car.substr(0, this.car.length - 1)
+                        break;
+                    case "ok":
+                        this.isShow = false
+                        break;
+                    case "exit":
+                        this.isShow = false
+                        break;
+                    case "check":
+                        if (this.keyBoardType == 1) {
+                            this.keyBoardType = 2;
+                        } else if (this.keyBoardType == 2) {
+                            this.keyBoardType = 1;
+                        }
+                        break;
+                    default:
+                        this.car += event;
+                        if (item != undefined) {
+                            this.keyBoardType = 2;
+                        }
+                        if (this.car.length >= 8) {
+                            this.isShow = false
+                        }
+                }
+            },
+            // 输入车牌键盘
+            onConfirm(value, index) {
+                this.show2 = false
+            },
+            onCancel() {
+                console.log('asdasd')
+                this.show2 = false
+            },
+            // 
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+
+            back() {
+                window.history.go(-1)
+            },
+            // renzhen(item) {
+            //     sessionStorage.setItem('isok2', 'true');
+            //     location.href = "model_details.html?id=" + item.id + "&auth=" + this.active
+            // },
+            tobaoyang(item) {
+                sessionStorage.setItem("baoyan", JSON.stringify(item));
+                // console.log('dianji')
+                location.href = "maintain.html"
+            },
+            toxinzeng(item) {
+                sessionStorage.setItem("baoyan", JSON.stringify(item));
+                location.href = "addchexin.html"
+            },
+            //去修改
+            toxiugai(item) {
+                sessionStorage.setItem("baoyan", JSON.stringify(item));
+                location.href = "change_information.html"
+            },
+            qiehuan(row) {
+                this.list = []
+                this.page = 0
+                this.active = row;
+                this.namelist()
+            },
+            onLoads() {
+                this.page++;
+                this.namelist();
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/diy/mall/vin/page`, {
+                    params: {
+                        status: this.active, status: this.active, page: this.page,
+                        size: this.size
+                    },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        if (res.data.data.vinPage) {
+                            // this.list = res.data.data.vinPage.content
+                            let rows = res.data.data.vinPage.content
+                            this.loading = false;
+                            this.total = res.data.data.vinPage.totalElements
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.finished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.list = this.list.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.list.length >= this.total) {
+                                this.finished = true;
+                            }
+                        } else {
+                            this.list = []
+                        }
+
+
+
+                        this.count = res.data.data.count
+                        console.log(this.list)
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

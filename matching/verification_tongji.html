@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>统计</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.12/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    html,
+    body {
+        height: 100%;
+        /* overflow-y: scroll; */
+        font-family: PingFangSC-Regular;
+    }
+
+    [v-cloak] {
+        display: none;
+    }
+
+    .che_h2 {
+        width: 50%;
+    }
+
+    .shenqin {
+        border-top: 1px solid #f5f5f5;
+        font-size: 14px;
+        color: #666;
+        line-height: 20px;
+        padding-top: 8px;
+    }
+
+    .c_h1 {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin-bottom: 2px;
+        width: 50%;
+        height: 25px;
+        margin-left: 55px;
+    }
+
+    .van-dropdown-menu {
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 999;
+        background: #fff;
+    }
+
+    .h1 {
+        height: 45px;
+        border-bottom: 1px solid #ccc;
+        position: fixed;
+        background: #fff;
+        width: 100%;
+        z-index: 99;
+        line-height: 45px;
+    }
+
+    .van-dropdown-menu__title--active {
+        color: #07c160;
+    }
+
+    .xuanzheqi {
+        border: 1px solid #dcdfe6;
+        height: 30px;
+        line-height: 30px;
+        font-size: 14px;
+        border-radius: 4px;
+        width: 95%;
+    }
+
+    .mendianh {
+        width: 30%;
+        overflow: hidden;
+    }
+
+    .xiabiao {
+        position: absolute;
+        right: 0;
+        top: 0;
+        color: #666;
+        margin-top: 15px;
+        margin-right: 5px;
+    }
+
+    .biaoti {
+        padding: 10px 12px;
+        font-size: 14px;
+        text-align: center;
+        line-height: 20px;
+    }
+
+    .red {
+        color: red;
+        font-weight: bold;
+        z-index: 999;
+    }
+
+    .shuju {
+        padding: 15px 12px;
+        font-size: 14px;
+    }
+
+    .van-col {
+        text-align: center;
+        border-right: 1px solid #f1f1f1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 13px;
+        padding: 0 2px;
+    }
+
+    .imgs {
+        width: 24px;
+        margin-top: 11px;
+    }
+
+    .biaotou {
+        border: 1px solid #f1f1f1;
+        font-size: 14px;
+        line-height: 30px;
+        color: #000;
+        background: #fff;
+        z-index: 99;
+    }
+
+    .biaotou2 {
+        font-size: 14px;
+        line-height: 30px;
+        border: 1px solid #f1f1f1;
+        border-top: none;
+        color: #666;
+    }
+
+    .let {
+        width: 40px;
+        height: 100%;
+        text-align: center;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .rit {
+        width: 40px;
+        height: 100%;
+        text-align: center;
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+
+    .he_shuju {
+        margin-top: 15px;
+        border-top: 1px solid #ccc;
+        line-height: 40px;
+        overflow: hidden;
+        padding: 0 12px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .he_shuju2 {
+        margin-top: 15px;
+        border-top: 1px solid #ccc;
+        line-height: 40px;
+        overflow: hidden;
+        padding: 0 12px;
+        font-size: 14px;
+        text-align: center;
+        color: #000;
+        font-weight: bold;
+    }
+
+    .hed_lis {
+        position: fixed;
+        top: 46px;
+        width: 100%;
+        /* position: relative; */
+        height: 40px;
+        background: #fff;
+        z-index: 99;
+        border-bottom: 1px solid #ebedf0;
+    }
+
+    .hhcc {
+        float: left;
+        font-size: 13px;
+        color: #646566;
+        width: 33.3%;
+        text-align: center;
+        line-height: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ord_lis {
+        overflow: hidden;
+        height: 100%;
+        background: #ebedf0;
+    }
+
+    .hua {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        margin-bottom: 5px;
+        width: 46px;
+        text-align: center;
+        margin-left: -23px;
+        height: 3px;
+        z-index: 1;
+        border-radius: 1.5px;
+        background-color: #0d906e;
+    }
+
+    .dingwei_a {
+        position: fixed;
+        top: 85px;
+        left: 0;
+        width: 100%;
+    }
+
+    .heji_h1 {
+        height: 25px;
+        line-height: 25px;
+        font-size: 12px;
+        overflow: hidden;
+        width: 100%;
+        background: #fff;
+    }
+
+    .hj_a {
+        float: left;
+        width: 33%;
+        text-align: center;
+    }
+
+    .van-dropdown-menu__bar {
+        box-shadow: none;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <div>
+            <van-dropdown-menu active-color="#07c160">
+                <div class="let" @click.stop="back">
+                    <van-icon style="margin-top: 15px;" name="arrow-left" size="16" />
+                </div>
+                <div class="rit" @click.stop="toxinxi">
+                    <img class="imgs" src="../img/tongji.png" alt />
+                </div>
+                <van-dropdown-item :title="listname" ref="item" @close="queding">
+                    <van-cell center :title="item.name" v-for="(item,idx) in sjlist" :key="idx" @click="xuanzhe(item)">
+                        <template #right-icon>
+                            <van-checkbox checked-color="#07c160" v-model="item.isOk"></van-checkbox>
+                        </template>
+                    </van-cell>
+                    <div style="padding: 5px 16px;">
+                        <van-button type="primary" block plain @click="onConfirm">确认</van-button>
+                    </div>
+                </van-dropdown-item>
+            </van-dropdown-menu>
+            <div class="hed_lis">
+                <div class="hhcc" @click="qiehuan(0)">
+                    销售员业绩
+                    <div class="hua" v-if="active == '0'"></div>
+                </div>
+                <div class="hhcc" @click="qiehuan(1)">
+                    已核销用户
+                    <div class="hua" v-if="active == '1'"></div>
+                </div>
+                <div class="hhcc" @click="qiehuan(2)">
+                    未核销用户
+                    <div class="hua" v-if="active == '2'"></div>
+                </div>
+            </div>
+            <van-row class="biaotou dingwei_a" v-if="active == '0'">
+                <van-col span="2">#</van-col>
+                <van-col span="5">销售员</van-col>
+                <van-col span="4">总销量</van-col>
+                <van-col span="4">已核销</van-col>
+                <van-col span="3">直推</van-col>
+                <van-col span="6">转介绍+电销</van-col>
+            </van-row>
+            <div v-if="active == '0'" style="overflow: hidden;background: #fff;padding-top:115px">
+                <van-list v-model="xsyloading" :finished="xsyfinished" :immediate-check="false" finished-text="没有更多了"
+                    @load="xsyonLoads" :offset="10">
+                    <van-row class="biaotou2" v-for="(item,ides) in userList" :key="ides+'a'">
+                        <van-col span="2">{{ides+1}}</van-col>
+                        <van-col span="5">{{item.name}}</van-col>
+                        <van-col span="4">{{item.totalCount}}</van-col>
+                        <van-col span="4">{{item.offCount}}</van-col>
+                        <van-col span="3">{{item.scount}}</van-col>
+                        <van-col span="6">{{item.ssCount}}</van-col>
+                    </van-row>
+                </van-list>
+            </div>
+            <div v-if="active == '1'" class="dingwei_a">
+                <!-- <div class="he_shuju2">已核销的客户</div> -->
+                <van-row class="biaotou">
+                    <van-col span="2">#</van-col>
+                    <van-col span="7">联系方式</van-col>
+                    <van-col span="5">详细信息</van-col>
+                    <van-col span="6">购买时间</van-col>
+                    <van-col span="4">属性</van-col>
+                </van-row>
+            </div>
+            <div v-if="active == '1'" style="overflow: hidden;background: #fff;padding-top:115px">
+                <van-list v-model="yhxloading" :finished="yhxfinished" :immediate-check="false" finished-text="没有更多了"
+                    @load="yhxonLoads" :offset="10">
+                    <van-row class="biaotou2" v-for="(item,idexs) in offCustomerList" :key="idexs">
+                        <van-col span="2">{{idexs+1}}</van-col>
+                        <van-col span="7">{{item.phone}}</van-col>
+                        <van-col span="5">{{item.carNo}}</van-col>
+                        <van-col span="6">{{item.bizDate?item.bizDate.substr(5,11):''}}</van-col>
+                        <van-col span="4">{{item.orderNumber}}</van-col>
+                    </van-row>
+                </van-list>
+            </div>
+            <div v-if="active == '2'" class="dingwei_a">
+                <!-- <div class="he_shuju2">未核销的客户</div> -->
+                <div class="heji_h1">
+                    <div class="hj_a">合计：{{list.unOffCount}}</div>
+                    <div class="hj_a">
+                        其中 新客：
+                        <span style="color: red;">{{list.unOffNewCount}}</span>
+                    </div>
+                    <div class="hj_a">
+                        老客：
+                        <span style="color: #3ac29f;">{{list.unOffOldCount}}</span>
+                    </div>
+                </div>
+                <van-row class="biaotou">
+                    <van-col span="2">#</van-col>
+                    <van-col span="2">客</van-col>
+                    <van-col span="5">车牌号码</van-col>
+                    <van-col span="6">联系方式</van-col>
+                    <van-col span="6">购买时间</van-col>
+                    <van-col span="3">属性</van-col>
+                </van-row>
+            </div>
+            <div v-if="active == '2'" style="overflow: hidden;background: #fff;padding-top:140px">
+                <van-list v-model="whxloading" :finished="whxfinished" :immediate-check="false" finished-text="没有更多了"
+                    @load="whxonLoads" :offset="10">
+                    <van-row class="biaotou2" v-for="(item,idex) in unOffCustomerList" :key="idex">
+                        <van-col span="2">{{idex+1}}</van-col>
+                        <van-col span="2">
+                            <span v-if="item.newCar ==1" style="color: red;">新</span>
+                            <span v-else>&#12288;</span>
+                        </van-col>
+
+                        <van-col span="5">{{item.carNo}}</van-col>
+                        <van-col span="6">{{item.phone}}</van-col>
+                        <van-col span="6">{{item.bizDate?item.bizDate.substr(5,11):''}}</van-col>
+                        <van-col span="3" style="color: red;" v-if="item.agentBuy == 1" @click="todaiban(item)">代办
+                        </van-col>
+                        <van-col span="3" v-else>{{item.orderNumber}}</van-col>
+                    </van-row>
+                </van-list>
+            </div>
+
+
+        </div>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                gid: "",
+                // imgs: "../../assets/img/tongji.png",
+                aid: '',
+                uid: "",
+                sjlist: [],
+                listname: "",
+                gids: "",
+                active: 0,
+                //销售员数据
+                xsypage: 0,
+                xsysize: 25,
+                xsyloading: false,
+                xsyfinished: false,
+                xsytotal: 0,
+                userList: [],
+                //未核销数据
+                whxpage: 0,
+                whxsize: 25,
+                whxloading: false,
+                whxfinished: false,
+                whxtotal: 0,
+                unOffCustomerList: [],
+                //已核销数据
+                yhxpage: 0,
+                yhxsize: 25,
+                yhxloading: false,
+                yhxfinished: false,
+                yhxtotal: 0,
+                offCustomerList: [],
+                list: {}
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.aid = getSearchString('aid', search); //结果：18
+            sessionStorage.setItem("h5token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjE3NjA3NTc2fQ.BDrNPLGyT0YkPjQ1E21yHA-z67GvkT5wJaPVsenfNg4rq5ms0vyANNtueFpYCD8txLbFk-LFEAkVoWVyV8URpg')
+            //获取安卓token
+            // this.token = window.androidjs.getLocalData("getToken");
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            back() {
+                window.history.go(-1)
+            },
+            xsyonLoads() {
+                this.xsypage++;
+                this.xsytongji();
+            },
+            yhxonLoads() {
+                this.yhxpage++;
+                this.yhxtongji();
+            },
+            whxonLoads() {
+                this.whxpage++;
+                this.whxtongji();
+            },
+            weihexiaoshu() {
+                var data = {
+                    aid: this.aid,
+                    gids: this.gids
+                };
+                axios.get(`${baseURL}/vehicle/market/aid/offCount`, {
+                    params: data,
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        console.log('dad');
+                        this.list = res.data.data;
+
+                    }
+                });
+            },
+            //未核销list
+            whxtongji() {
+                var data = {
+                    aid: this.aid,
+                    gids: this.gids,
+                    page: this.whxpage,
+                    size: this.whxsize
+                };
+                axios.get(`${baseURL}/vehicle/market/aid/unOff`, {
+                    params: data,
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        console.log(res);
+                        if (res.data.data) {
+                            let rows = res.data.data;
+                            this.whxloading = false;
+                            this.whxtotal = res.data.pageInfo.total;
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.whxfinished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.unOffCustomerList = this.unOffCustomerList.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.unOffCustomerList.length >= this.whxtotal) {
+                                this.whxfinished = true;
+                            }
+                        } else {
+                            this.unOffCustomerList = [];
+                        }
+                    }
+                });
+            },
+            //已核销list
+            yhxtongji() {
+                var data = {
+                    aid: this.aid,
+                    gids: this.gids,
+                    page: this.yhxpage,
+                    size: this.yhxsize
+                };
+                axios.get(`${baseURL}/vehicle/market/aid/off`, {
+                    params: data,
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        if (res.data.data) {
+                            let rows = res.data.data;
+                            this.yhxloading = false;
+                            this.yhxtotal = res.data.pageInfo.total;
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.yhxfinished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.offCustomerList = this.offCustomerList.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.offCustomerList.length >= this.yhxtotal) {
+                                this.yhxfinished = true;
+                            }
+                        } else {
+                            this.offCustomerList = [];
+                        }
+                    }
+                });
+            },
+            //销售员list
+            xsytongji() {
+                var data = {
+                    aid: this.aid,
+                    gids: this.gids,
+                    page: this.xsypage,
+                    size: this.xsysize
+                };
+
+
+                axios.get(`${baseURL}/vehicle/market/aid/sale`, {
+                    params: data,
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        console.log(res);
+                        if (res.data.data) {
+                            let rows = res.data.data;
+                            this.xsyloading = false;
+                            this.xsytotal = res.data.pageInfo.total;
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.xsyfinished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.userList = this.userList.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.userList.length >= this.xsytotal) {
+                                this.xsyfinished = true;
+                            }
+                        } else {
+                            this.userList = [];
+                        }
+                    }
+                });
+
+
+            },
+
+            qiehuan(row) {
+                let top = document.documentElement.scrollTop || document.body.scrollTop;
+                //实现滚动效果
+                //   const timeTop = setInterval(() => {
+                //     document.body.scrollTop = document.documentElement.scrollTop = top -= 50;
+                //     if (top <= 0) {
+                //       clearInterval(timeTop);
+                //     }
+                //   }, 10);
+                console.log(document.body.scrollTop)
+                document.body.scrollTop = 0;
+                scrollTo(0, 0);
+                if (document.body.scrollTop == 0) {
+                    this.active = row;
+                }
+
+            },
+
+
+
+            //to统计报表页面
+            toxinxi() {
+                location.href = "verification_baobiao.html?aid=" + this.aid
+            },
+            //////
+            xuanzhe(item) {
+                console.log(item);
+                item.isOk = !item.isOk;
+            },
+            //
+            queding() {
+                var shangjia = [];
+                this.xsypage = 0;
+                this.xsyloading = false;
+                this.xsyfinished = false;
+                this.whxpage = 0;
+                this.whxloading = false;
+                this.whxfinished = false;
+                this.yhxpage = 0;
+                this.yhxloading = false;
+                this.yhxfinished = false;
+                this.userList = [];
+                this.unOffCustomerList = [];
+                this.offCustomerList = [];
+                var gids = "";
+                this.sjlist.forEach(item => {
+                    if (item.isOk == true) {
+                        shangjia.push(item);
+                        gids += item.id + ",";
+                    }
+                });
+                gids = gids.substring(0, gids.length - 1);
+                this.gids = gids;
+                console.log(shangjia.length);
+                if (shangjia != 0) {
+                    this.listname = shangjia[0].name + " 等共" + shangjia.length + "店";
+                }
+
+                this.xsytongji();
+                this.weihexiaoshu();
+                this.yhxtongji();
+                this.whxtongji();
+            },
+            //确认
+            onConfirm() {
+                this.$refs.item.toggle();
+            },
+            //去修改
+            banli(item) {
+                // sessionStorage.setItem("baoyan", JSON.stringify(item));
+                location.href = "verification_banli.html"
+            },
+            // //统计数据list
+            // listtongji() {
+
+            //     axios.get(`${baseURL}/vehicle/market/aid/sale`, {
+            //         params: {
+            //             aid: this.aid,
+            //             gids: this.gids
+            //         },
+            //         headers: {
+            //             'Authorization': sessionStorage.getItem('h5token')
+            //         }
+
+            //     }).then(res => {
+            //         if (res.data.code == 200) {
+            //             this.list = res.data.data;
+            //         }
+            //     });
+            // },
+            //门店list
+            namelist() {
+                axios.get(`${baseURL}/vehicle/market/garage/list`, {
+                    params: {
+                        aid: this.aid
+                    },
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.sjlist = res.data.data;
+                        var gids = "";
+                        this.sjlist.forEach(item => {
+                            if (item.isOk == true) {
+                                gids += item.id + ",";
+                            }
+                        });
+                        gids = gids.substring(0, gids.length - 1);
+                        this.gids = gids;
+                        this.listname = res.data.data[0].name + " 等共" + res.data.data.length + "店";
+                        this.weihexiaoshu()
+                        this.xsytongji()
+                        this.yhxtongji()
+                        this.whxtongji()
+
+                    } else {
+                        this.$toast(res.data.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

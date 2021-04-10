@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>报表</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h1 {
+        text-align: center;
+        font-size: 16px;
+        line-height: 40px;
+    }
+
+    .biao {
+        border: 1px solid #333;
+        border-bottom: none;
+        font-size: 14px;
+        margin: 0 10px;
+    }
+
+    .biao_a {
+        display: flex;
+        display: -webkit-flex;
+        border-bottom: 1px solid #333;
+        overflow: hidden;
+    }
+
+    .nei_a {
+        float: left;
+        width: 25%;
+        text-align: center;
+        border-right: 1px solid #333;
+        flex-direction: column;
+        padding: 5px 0;
+    }
+
+    .nei_b {
+        text-align: right;
+        float: left;
+        width: 25%;
+        border-right: 1px solid #333;
+        flex-direction: column;
+        padding: 5px 10px;
+    }
+
+    .nei_c {
+        flex-direction: column;
+        float: left;
+        padding: 5px 10px;
+        width: 50%;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <div style="overflow: hidden;background: #fff;padding-top:0">
+            <div class="h1">{{list.activityName}}</div>
+            <div class="biao">
+                <div class="biao_a">
+                    <div class="nei_a">总订单数</div>
+                    <div class="nei_b">{{list.orderTotal}}</div>
+                    <div class="nei_c">备注</div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">总金额</div>
+                    <div class="nei_b" style="color: red">{{list.orderAmount?list.orderAmount.toFixed(2):''}}</div>
+                    <div class="nei_c">
+                        {{list.orderTotal}}*{{list.activityPrice}}={{list.orderAmount?list.orderAmount.toFixed(2):''}}
+                    </div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">红包总金额</div>
+                    <div class="nei_b">{{list.redTotal?list.redTotal.toFixed(2):''}}</div>
+                    <div class="nei_c">直接红包+二级红包+购买红包+分享红包</div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">结算金额</div>
+                    <div class="nei_b">{{list.actualAmount?list.actualAmount.toFixed(2):''}}</div>
+                    <div class="nei_c"></div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">直接红包个数</div>
+                    <div class="nei_b">{{list.firstCount}}</div>
+                    <div class="nei_c"></div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">直接红包金额</div>
+                    <div class="nei_b">{{list.firstAmount?list.firstAmount.toFixed(2):''}}</div>
+                    <div class="nei_c">3.6.9翻倍</div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">二级红包个数</div>
+                    <div class="nei_b">{{list.secondCount}}</div>
+                    <div class="nei_c"></div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">二级红包金额</div>
+                    <div class="nei_b">{{list.secondAmount?list.secondAmount.toFixed(2):''}}</div>
+                    <div class="nei_c">
+                        <span
+                            v-if="list.secondAmount">{{list.secondCount}}*{{list.secondRed}}={{list.secondAmount?list.secondAmount.toFixed(2):''}}</span>
+                    </div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">购买红包金额</div>
+                    <div class="nei_b"></div>
+                    <div class="nei_c"></div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">分享红包金额</div>
+                    <div class="nei_b">{{list.shareAmount?list.shareAmount.toFixed(2):''}}</div>
+                    <div class="nei_c">
+                        <span
+                            v-if="list.shareAmount">{{list.shareCount}}*{{list.shareRed}}={{list.shareAmount?list.shareAmount.toFixed(2):''}}</span>
+                    </div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">1%提现手续费</div>
+                    <div class="nei_b">{{Math.ceil(list.orderAmount)*list.inCashRate}}</div>
+                    <div class="nei_c"></div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">短信费用</div>
+                    <div class="nei_b">{{list.smsAmount?list.smsAmount.toFixed(2):''}}</div>
+                    <div class="nei_c"></div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">集客手续费</div>
+                    <div class="nei_b">{{list.gcamount?list.gcamount.toFixed(2):''}}</div>
+                    <div class="nei_c">
+                        <span
+                            v-if="list.gcamount">{{list.orderTotal}}*{{list.gcprice}}={{list.gcamount?list.gcamount.toFixed(2):''}}</span>
+                    </div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">电销费用</div>
+                    <div class="nei_b">{{list.esamount?list.esamount.toFixed(2):''}}</div>
+                    <div class="nei_c"></div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">代发红包</div>
+                    <div class="nei_b">{{list.proxyRedAmount?list.proxyRedAmount.toFixed(2):''}}</div>
+                    <div class="nei_c"></div>
+                </div>
+                <div class="biao_a">
+                    <div class="nei_a">实际提现金额</div>
+                    <div class="nei_b" style="color: red">{{list.actualCashAmount?list.actualCashAmount.toFixed(2):''}}
+                    </div>
+                    <div class="nei_c" style="color: red;">结算金额-提现手续费-集客手续费</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                gid: "",
+                aid: '',
+                content: [],
+                uid: "",
+                list: {}
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.aid = getSearchString('aid', search); //结果：18
+            //获取安卓token
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            houhui() {
+                window.androidjs.onCallbackIntent("Finish");
+            },
+            namelist() {
+                axios.get(`${baseURL}/vehicle/market/garage/order`, {
+                    params: {
+                        aid: this.aid,
+                    },
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

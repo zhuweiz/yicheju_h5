@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>新增车型保养库</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <!-- <script src="../js/http.js"></script> -->
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="./maintain.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .che_h2 {
+        width: 50%;
+    }
+
+    .shenqin {
+        border-top: 1px solid #f5f5f5;
+        font-size: 14px;
+        color: #666;
+        line-height: 20px;
+        padding-top: 8px;
+    }
+
+    .c_h1 {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin-bottom: 2px;
+        width: 50%;
+        height: 25px;
+        margin-left: 55px;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar title="新增车型保养库" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div class="pai_list_b biaoti">
+            <div style="overflow: hidden;padding: 6px 15px 5px 15px;">
+                <div style="overflow: hidden;" class="h1">
+                    <div class="left che">车牌：{{baoyan.carNo}}</div>
+                    <div class="left vi">vin：{{baoyan.vinCode}}</div>
+                </div>
+                <div style="overflow: hidden;" class="h1">
+                    <div class="left che">车型：{{baoyan.carBrand}}-{{baoyan.carModel}}</div>
+                    <div class="left vi">车系：{{baoyan.series}}</div>
+                </div>
+                <div style="overflow: hidden;" class="h1">
+                    <div class="left che">年份：{{baoyan.year}}</div>
+                    <div class="left vi">排量：{{baoyan.combineName}}</div>
+                </div>
+                <div style="overflow: hidden;" class="h1">
+                    厂家：{{baoyan.manufacturers}}
+                </div>
+                <div style="overflow: hidden;" class="h1 c999">
+                    <div class="left che">姓名：{{baoyan.customerName}}</div>
+                    <div class="left vi">电话：{{baoyan.phone}}</div>
+                </div>
+            </div>
+        </div>
+        <div style="overflow: hidden;background: #fff;padding-top:180px">
+            <div class="c_list">
+                <div style="overflow: hidden;padding: 6px 15px 0px 15px;">
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span>轮胎：</span>
+                        <input class="inpucc" v-model="baoyan.tires" type="text">
+                    </div>
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span>机油量：</span>
+                        <input class="inpucc" v-model="baoyan.dataTips" type="text">
+                    </div>
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span>途虎建议机油：</span>
+                        <input class="inpucc" v-model="baoyan.tag1" type="text">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- <van-empty v-if="list.length < 1" description="暂无数据~" /> -->
+        </div>
+        <div class="bott">
+            <van-button type="danger" class="quxiao" @click="quxiao">取消</van-button>
+            <van-button type="primary" class="tijiao" @click="tijiao">提交</van-button>
+        </div>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                search: '',
+                baoyan: JSON.parse(sessionStorage.getItem("baoyan")),
+                list: [],
+                active: 1,
+                tires: '',
+                dataTips: '',
+                tag1: '',
+                tag2: '',
+                tag3: '',
+                isok: false,
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+
+        },
+
+        methods: {
+            tijiao() {
+                var parmas = {
+                    carBrand: this.baoyan.carBrand,
+                    carModel: this.baoyan.carModel,
+                    carName: this.baoyan.carName,
+                    carNo: this.baoyan.carNo,
+                    combineName: this.baoyan.combineName,
+                    customerName: this.baoyan.customerName,
+                    dataTips: this.baoyan.dataTips,
+                    id: this.baoyan.id,
+                    manufacturers: this.baoyan.manufacturers,
+                    nome: this.baoyan.nome,
+                    phone: this.baoyan.phone,
+                    series: this.baoyan.series,
+                    tag1: this.baoyan.tag1,
+                    tag2: this.baoyan.tag2,
+                    tag3: this.baoyan.tag3,
+                    tires: this.baoyan.tires,
+                    vinCode: this.baoyan.vinCode,
+                    year: this.baoyan.year,
+                }
+                axios.post(`${baseURL}/vehicle/diy/mall/save/oil`, parmas)
+                    .then(res => {
+                        console.log('res=>', res);
+                        if (res.data.code = 200) {
+                            this.$toast("提交成功!");
+                            setTimeout(() => {
+                                window.history.go(-1)
+                            }, 1000);
+                        } else {
+                            this.$toast.fail(res.data.message)
+                        }
+                    })
+            },
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                    console.log("andriod");
+                }
+            },
+            back() {
+                history.go(-1)
+            },
+            quxiao() {
+                history.go(-1)
+            },
+        }
+    })
+</script>
+
+</html>

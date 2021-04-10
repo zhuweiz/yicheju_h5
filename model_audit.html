@@ -23,12 +23,34 @@
     [v-cloak] {
         display: none;
     }
+
+    .che_h2 {
+        width: 50%;
+    }
+    .shenqin{
+        border-top: 1px solid #f5f5f5;
+        font-size: 14px;
+        color: #666;
+        line-height: 20px;
+        padding-top: 8px;
+    }
+    .c_h1 {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin-bottom: 2px;
+        width: 50%;
+        height: 25px;
+        margin-left: 55px;
+    }
 </style>
 
 <body>
     <!--  -->
     <div id="app" style="background: #F7F9FC;height: 100%;" v-cloak>
-        <van-nav-bar v-if="isok" title="审核列表" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <van-nav-bar v-if="isok" title="审核列表" left-arrow :fixed="true" :z-index="999" @click-left="back"> <template #right>
+            <van-icon @click="shuaxin" name="replay" size="18" />
+        </template></van-nav-bar>
         <div class="hed_lis" :style="{top:(isok?'46px':'')}">
             <div class="hhcc" @click="qiehuan(1)">
                 待审核
@@ -55,18 +77,20 @@
                         <span v-if="item.auth==3" style="color: red;">认证未通过</span>
                     </div>
                 </div>
-                <div style="overflow: hidden;margin-top: 10px;">
+                <div style="overflow: hidden;margin-top: 10px;position: relative">
                     <div class="left" style="width: 45px;height: 45px;">
                         <img class="chexinimg" :src="item.carBrandLogo" alt />
                     </div>
                     <div class="left che_h2">
                         <div class="c_h1">
                             {{item.carBrand}}-{{item.carModel}}
-                            <!-- <span class="moren" v-if="item.onDefault">默认</span> -->
                         </div>
-                        <!-- <div class="c_h2">2018款2.0T 双离合 尊享版</div> -->
                     </div>
+
                 </div>
+                <div class="shenqin" v-if="active == 1">申请时间：{{item.lastModifiedDate}}</div>
+                <div class="shenqin" v-if="active == 3">拒绝时间：{{item.lastModifiedDate}}</div>
+                <div class="shenqin" v-if="active == 2">通过时间：{{item.lastModifiedDate}}</div>
             </div>
 
             <van-empty v-if="list.length < 1" description="暂无数据~" />
@@ -140,7 +164,7 @@
                 const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
                 if (isiOS) {
                     this.isok = false
-                   
+
                     console.log("ios");
                 } else {
                     this.isok = true
@@ -150,6 +174,9 @@
             },
             back() {
                 window.androidjs.onCallbackIntent("MainActivity");
+            },
+            shuaxin() {
+                history.go(0)
             },
             renzhen(item) {
                 sessionStorage.setItem('isok2', 'true');

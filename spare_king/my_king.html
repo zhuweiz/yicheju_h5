@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>备用金</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h1 {
+        text-align: center;
+        /* font-weight: bold; */
+        font-size: 17px;
+        line-height: 26px;
+        margin-top: 15px;
+    }
+
+    .hed {
+        position: fixed;
+        width: 100%;
+        background: red;
+        color: #fff;
+        top: 0;
+        left: 0;
+        line-height: 25px;
+        text-align: center;
+        height: 110px;
+    }
+
+    .heds {
+        background: #fff;
+        color: #000;
+        height: 40px;
+        line-height: 40px;
+        margin-top: 15px;
+    }
+
+
+    .van-row {
+        font-size: 14px;
+        text-align: center;
+        line-height: 40px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .bott {
+        position: fixed;
+        width: 100%;
+        height: 55px;
+        z-index: 99;
+        bottom: 0;
+        left: 0;
+        background: #fff;
+        font-size: 14px;
+    }
+
+    .boct {
+        width: 80px;
+        overflow: hidden;
+        margin: 15px auto;
+
+    }
+
+    .van-button {
+        width: 50%;
+        border-radius: 0;
+        border: none;
+        float: left;
+    }
+
+    .tanchuang {
+        width: 85%;
+        text-align: center;
+    }
+
+    .name {
+        line-height: 40px;
+        background: red;
+        color: #fff;
+    }
+
+    .t_bot {
+        line-height: 50px;
+        overflow: hidden;
+        margin: auto;
+        font-size: 14px;
+    }
+
+    .an {
+        float: left;
+        width: 33%;
+        height: 55px;
+        text-align: center;
+    }
+
+    .y_img {
+        width: 35px;
+        height: 30px;
+    }
+
+    .t_s {
+        width: 100%;
+        text-align: center;
+        color: #fff;
+        line-height: 30px;
+        font-size: 14px;
+    }
+
+    .van-popup--center {
+        top: 40%;
+    }
+
+    .fanshi {
+        overflow: hidden;
+        font-size: 13px;
+        padding: 0 15px;
+        line-height: 40px;
+        color: #666;
+    }
+
+    .dengji {
+        width: 85%;
+        border: 1px solid #999;
+        top: 45%;
+        font-weight: bold;
+        color: #666;
+    }
+
+    .mian {
+        overflow: hidden;
+        padding: 12px 15px;
+        line-height: 28px;
+        font-size: 15px;
+    }
+
+    input {
+        width: 130px;
+    }
+
+    .mian_a {
+        margin: 45px 40px;
+        font-size: 14px;
+    }
+
+    .jiner {
+        color: #000;
+        text-indent: 5px;
+        width: 70px;
+        height: 18px;
+        border: 1px solid #f5f5f5;
+        line-height: 16px;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <div class="hed">
+            <div style="font-size: 12px;margin-top: 15px;">
+                <span v-if="lbisok">{{name}} 的备用金</span>
+                <span v-else>我的备用金</span>
+                
+            </div>
+            <div style="font-size: 20px;font-weight: bold;">
+                ￥{{heji?heji.toFixed(2):'0.00'}}
+            </div>
+            <van-row class="heds">
+                <van-col span="5">时间</van-col>
+                <van-col span="5">结转</van-col>
+                <van-col span="4">借/还</van-col>
+                <van-col span="5">余额</van-col>
+                <van-col span="5">支出</van-col>
+            </van-row>
+        </div>
+        <div style="overflow: hidden;background: #fff;padding-top:120px">
+
+            <van-row style="font-size: 13px;" v-for="(item,idx) in list" :key="idx" @click="tobeiyong(item)">
+                <!-- <van-col span="5">{{item.bizDate.substr(5,11)}}99</van-col> -->
+                <van-col span="5">{{item.lastModifiedDate.substr(5,11)}}</van-col>
+                <van-col span="5">
+                    <span>{{item.oldAmount?item.oldAmount.toFixed(2):'0'}}</span>
+                </van-col>
+                <van-col span="4">
+                    <span v-if="item.type == 1">-</span>
+                    {{item.amount?item.amount.toFixed(2):'0'}}
+                </van-col>
+                <van-col span="5">
+                    {{item.balance?item.balance.toFixed(2):'0'}}
+                </van-col>
+                <van-col span="5">{{item.outAmount?item.outAmount.toFixed(2):'0'}}<van-icon @click="" size="16"
+                        style="float: right;margin: 12px 10px 0 0px;" color="#999" name="arrow"></van-icon>
+                </van-col>
+            </van-row>
+
+        </div>
+        <div class="bott" v-if="!lbisok">
+            <div class="an" @click="jiekuan(0)">
+                <img class="y_img" src="../img/y_jie.png" alt="">
+                <div style="line-height: 15px">借款</div>
+            </div>
+            <div class="an">
+                <img class="y_img" @click="jiekuan(1)" src="../img/y_huan.png" alt="">
+                <div style="line-height: 15px">还款</div>
+            </div>
+            <div class="an" @click="tozhichu(2)">
+                <img class="y_img" src="../img/y_zhi.png" alt="">
+                <div style="line-height: 15px" >支出</div>
+            </div>
+            <!-- <van-button class="an" type="danger" @click="tijiao(1)">收款</van-button>
+            <van-button class="an" type="primary" @click="tijiao(2)">退款</van-button> -->
+        </div>
+        <van-popup closeable v-model="show2" class="dengji" :close-on-click-overlay="false">
+            <div class="h1">{{type == 0 ?'借款申请':'还款申请'}}</div>
+            <div class="mian_a">
+                <div>申请金额：<input type="number" v-model="amount"></div>
+            </div>
+
+            <div class="boct">
+                <div class="left t_s" style="background: red" @click="tijiao">提交</div>
+
+            </div>
+        </van-popup>
+        <van-popup closeable v-model="show" class="dengji" :close-on-click-overlay="false">
+            <div class="h1">{{type == 0 ?'借款申请单':'还款申请单'}}</div>
+            <div class="mian">
+                <div>申请人：<span style="color: red">{{form.ename}}</span></div>
+                <div>申请时间：<span style="color: red">{{form.lastModifiedDate}}</span></div>
+                <div>申请金额：<span style="color: red">￥{{form.amount}}</span></div>
+                <div>状态：<span style="color: red">等待审核（通过、未同意）</span></div>
+            </div>
+
+            <div class="boct">
+                <div class="left t_s" style="background: #0D906E" @click="xinshenqin">提交新申请</div>
+
+            </div>
+    </div>
+    </van-popup>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                list: [],//
+                value: '',
+                form: {},
+                amount: '',
+                show: false,
+                sjshow: false,
+                fsshow: false,
+                show2: false,
+                active: 1,
+                heji: '',
+                eid: null,
+                name: null,
+                count: '',
+                token: '',
+                gid:'',
+                type: null,
+                lbisok: false,
+                isok: false,
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.eid = getSearchString('eid', search); //结果：18
+            this.name = getSearchString('name', search); //结果：18
+            this.gid = getSearchString('gid', search); //结果：18
+            if (getSearchString('lbisok', search)) {
+                this.lbisok = getSearchString('lbisok', search)
+                console.log('this.eid')
+            }
+
+
+            //获取安卓token
+
+            this.token = window.androidjs.getLocalData("getToken");
+            // this.token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjE2IiwiZXhwIjoxNjE4ODg4OTI5fQ.91MRuKtU2xUk7JiT2Lvjt2xyNiFxtgjQEd_Sj4uTDBguQLI-QGCcAKwzOiOwDR0SSR_ysnvaIY4DF1-iJgSb2Q'
+            sessionStorage.setItem('h5token', this.token)
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            back() {
+                //返回首页
+                // window.androidjs.onCallbackIntent("MainActivity");
+                //回退上一页
+                window.androidjs.onCallbackIntent("Finish");
+            },
+            tobeiyong(item) {
+                location.href = "beiyong_zhichu.html?id="+item.id+ '&lbisok=' + this.lbisok
+            },
+            //去z支出页面
+            tozhichu(type) {
+                console.log('asdasdasdad')
+                this.type = type
+                axios.get(`${baseURL}/vehicle/spare/apply/details`, {
+                    params: {
+                        eid: this.eid,
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        if (res.data.data != undefined) {
+                            if(this.type != res.data.data.type){
+                                if(res.data.data.type == 0){
+                                    this.$toast('存在借款申请未审核,不可提交其它申请!')
+                                }else if(res.data.data.type == 1){
+                                    this.$toast('存在还款申请未审核,不可提交其它申请!')
+                                }else if(res.data.data.type == 2){
+                                    this.$toast('存在支出申请未审核,不可提交其它申请!')
+                                }
+                                return
+                            }
+                        }
+                        location.href = "accounts.html?gid="+this.gid
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+           
+            },
+            xinshenqin() {
+                this.show2 = true
+                this.show = true
+            },
+            //借款
+            jiekuan(type) {
+                this.type = type
+                axios.get(`${baseURL}/vehicle/spare/apply/details`, {
+                    params: {
+                        eid: this.eid,
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+
+                        if (res.data.data == undefined) {
+                            console.log('res.data.data')
+                            this.show2 = true
+                        } else {
+                            if(this.type != res.data.data.type){
+                                if(res.data.data.type == 0){
+                                    this.$toast('存在借款申请未审核,不可提交其它申请!')
+                                }else if(res.data.data.type == 1){
+                                    this.$toast('存在还款申请未审核,不可提交其它申请!')
+                                }else if(res.data.data.type == 2){
+                                    this.$toast('存在支出申请未审核,不可提交其它申请!')
+                                }
+                                return
+                            }
+                            this.form = res.data.data
+                            this.show = true
+                        }
+
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+            //借/退款提交
+            tijiao() {
+                if (this.amount == '') {
+                    this.$toast.fail('请先输入金额')
+                    return
+                }
+                var data = {
+                    "amount": this.amount,
+                    // "gid": this.gid,
+                    "gid": 1,
+                    "type": this.type
+                }
+                axios({
+                    url: `${baseURL}/vehicle/spare/save/apply`,
+                    method: 'post',
+                    params: data, // query参数
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    console.log(res)
+                    if (res.data.success == true) {
+                        this.$toast("提交成功!");
+                        this.namelist()
+                        this.show2 = false
+                    } else {
+                        this.$toast.fail(res.data.message)
+                    }
+                })
+            },
+            //收款提交
+            shoutijiao() {
+                if (this.amount == '') {
+                    this.$toast.fail('请先输入金额')
+                    return
+                } else if (this.payTypes == null) {
+                    this.$toast.fail('请选择收款方式')
+                    return
+                } else if (this.amount != this.payTypes.amount) {
+                    this.$toast.fail('请检查金额')
+                    return
+                } else if (this.bizDate == '') {
+                    this.$toast.fail('请选择收款时间')
+                    return
+                }
+                var data = {
+                    "bizDate": this.bizDate,
+                    "oid": this.oid,
+                    "payTypes": this.payTypes
+                }
+                axios({
+                    url: `${baseURL}/vehicle/order/payOrderAdvance`,
+                    method: 'post', data, // query参数
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    console.log(res)
+                    if (res.data.success == true) {
+                        this.$toast("收款成功!");
+                        this.namelist()
+                        this.show = false
+                    } else {
+                        this.$toast.fail(res.data.message)
+                    }
+                })
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/spare/details`, {
+                    params: {
+                        eid: this.eid,
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                        if (res.data.data.length > 0) {
+                            var les = res.data.data.length - 1
+                            this.heji = this.list[les].balance
+                            this.eid = this.list[les].eid
+                        }
+
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

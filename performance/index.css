@@ -1,0 +1,93 @@
+.h1 {
+    height: 45px;
+    border-bottom: 1px solid #ccc;
+    position: fixed;
+    background: #fff;
+    width: 100%;
+    z-index: 99;
+    line-height: 45px;
+}
+
+.xuanzheqi {
+    border: 1px solid #dcdfe6;
+    height: 30px;
+    line-height: 30px;
+    font-size: 14px;
+    border-radius: 4px;
+    width: 95%;
+}
+
+.mendianh {
+    width: 30%;
+    overflow: hidden;
+}
+
+.xiabiao {
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #666;
+    margin-top: 15px;
+    margin-right: 5px;
+}
+
+.biaoti {
+    padding: 10px 12px;
+    font-size: 14px;
+    text-align: center;
+    line-height: 20px;
+}
+
+.red {
+    color: red;
+    font-weight: bold;
+}
+
+.shuju {
+    padding: 15px 12px;
+    font-size: 14px;
+}
+
+.van-col {
+    text-align: center;
+    border-right: 1px solid #f1f1f1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    padding: 0 2px;
+}
+
+.biaotou {
+    border: 1px solid #f1f1f1;
+    font-size: 14px;
+    line-height: 30px;
+}
+
+.biaotou2 {
+    font-size: 14px;
+    line-height: 30px;
+    border: 1px solid #f1f1f1;
+    border-top: none;
+    color: #666;
+}
+
+.he_shuju {
+    margin-top: 15px;
+    border-top: 1px solid #ccc;
+    line-height: 40px;
+    overflow: hidden;
+    padding: 0 12px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.he_shuju2 {
+    margin-top: 15px;
+    border-top: 1px solid #ccc;
+    line-height: 40px;
+    overflow: hidden;
+    padding: 0 12px;
+    font-size: 14px;
+    text-align: center;
+}

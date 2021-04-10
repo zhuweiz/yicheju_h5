@@ -116,8 +116,8 @@
 
 					</van-cell>
 					<div class="cimg">
-						<img class="bimg" @click="getImg(item.picUrl)" v-for="(item,idx) in orderData.orderPictureList" :key="idx" :src="item.picUrl"
-							alt="">
+						<img class="bimg" @click="getImg(item.picUrl)" v-for="(item,idx) in orderData.orderPictureList"
+							:key="idx" :src="item.picUrl" alt="">
 					</div>
 				</van-cell-group>
 				<van-row>
@@ -344,6 +344,7 @@
 				checked2: true
 			}
 		},
+
 		computed: {
 			proTotal() {
 				if (this.orderData.orderItemList !== undefined && this.orderData.orderItemList !== null && this.orderData.orderItemList.length > 0) {
@@ -369,7 +370,16 @@
 			}
 		},
 		mounted() {
+			window.addEventListener('pageshow', function () {
+				if (this.isPageHide) {
+					// window.location.reload();
+					history.go(0)
+				}
+			});
+			window.addEventListener('pagehide', function () {
+				this.isPageHide = true;
 
+			});
 			let _this = this
 			this.gid = this.getQueryVariable("gid")
 			this.oid = this.getQueryVariable("oid")
@@ -403,17 +413,22 @@
 				vant.ImagePreview([images]);
 			},
 			clickBut() {
-				$("#signature").jSignature({
-					color: "green",
-					lineWidth: 5,
-					width: "100%",
-					height: "100%"
-				})
-				if (this.showDom) {
-					this.showDom = false
-				} else {
-					this.showDom = true
-				}
+				sessionStorage.setItem(
+					"orderData",
+					JSON.stringify(this.orderData)
+				);
+				window.location.href = "indexqm.html?gid=" + this.gid + "&oid=" + this.oid
+				// $("#signature").jSignature({
+				// 	color: "green",
+				// 	lineWidth: 5,
+				// 	width: "100%",
+				// 	height: "100%"
+				// })
+				// if (this.showDom) {
+				// 	this.showDom = false
+				// } else {
+				// 	this.showDom = true
+				// }
 			},
 			views() {
 				this.show = true

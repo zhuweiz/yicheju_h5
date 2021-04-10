@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>新增车型保养库</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <!-- <script src="../js/http.js"></script> -->
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="./maintain.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .che_h2 {
+        width: 50%;
+    }
+
+    .shenqin {
+        border-top: 1px solid #f5f5f5;
+        font-size: 14px;
+        color: #666;
+        line-height: 20px;
+        padding-top: 8px;
+    }
+
+    .c_dname {
+        float: left;
+    }
+
+    .c_h1 {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin-bottom: 2px;
+        width: 50%;
+        height: 25px;
+        margin-left: 55px;
+    }
+
+    .c_list {
+        font-size: 13px;
+    }
+
+    .tijiao {
+        width: 100%;
+    }
+
+    .big_img_div {
+        height: 240px;
+    }
+
+    .pai_list_b {
+        border: none;
+        position: fixed;
+        top: 46px;
+        width: 100%;
+        overflow: hidden;
+        left: 0;
+        height: 240px;
+        z-index: 99;
+    }
+
+    /* html {
+
+        position: fixed;
+
+        height: 100%;
+
+        width: 100%;
+
+    } */
+
+    .ccimg {
+        width: 99%;
+        display: block;
+        margin: auto;
+        overflow: hidden;
+
+    }
+
+    .fanzhuan_a {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 30px;
+        margin-top: -15px;
+    }
+
+    .fanzhuan_b {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        width: 30px;
+        margin-top: -15px;
+    }
+
+    #test_3 {
+        height: 280px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .img_src {
+        /* width: 99%; */
+        display: block;
+        margin: auto;
+        overflow: hidden;
+        position: absolute;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar title="新增车型保养库" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div class="pai_list_b biaoti">
+            <div style="overflow: hidden;position: relative;height: 240px;">
+                <img class="img_src" :src="list.driveUrl" @mousedown="down" @touchstart.stop="down"
+                    @touchmove.stop="moves" @mouseup="end" @touchend.stop="end"
+                    :style="{top:position.y+'px', left:position.x+'px',transform:'rotateZ('+deg+'deg)'}">
+                <!-- <img class="ccimg" :style="{transform:'rotateZ('+deg+'deg)','margin-left':left+'px'}"
+                    :src="list.driveUrl" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend"
+                    class="big_img" alt=""> -->
+                <img class="fanzhuan_a" @click.stop="fan" src="../img/fanzhuan2.png" alt="">
+                <img class="fanzhuan_b" @click.stop="zheng" src="../img/fanzhuan.png" alt="">
+            </div>
+        </div>
+        <div style="overflow: hidden;background: #fff;padding-top:280px;">
+            <div class="c_list">
+                <div style="overflow: hidden;padding: 6px 15px 0px 15px;">
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span class="c_dname">车主名：</span>
+                        <input class="inpucc" v-model="list.customerName" type="text">
+                    </div>
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span class="c_dname">车&#12288牌：</span>
+                        <input class="inpucc" v-model="list.carNo" type="text">
+                    </div>
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span class="c_dname">V&#8194I&#8194N：</span>
+                        <input class="inpucc" v-model="list.vinCode" type="text">
+                    </div>
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span class="c_dname">车&#12288型：</span>
+                        <div class="inpucc" style="display: inline-block;height: 24px;">
+                            {{list.carBrand}}-{{list.carModel}}</div>
+                        <!-- <input class="inpucc" v-model="baoyan.tag1" type="text"> -->
+                    </div>
+                    <div style="overflow: hidden;margin-top: 12px">
+                        <van-button class="right m-r-10" style="margin-top: 3px" plain type="primary" size="mini"
+                            @click="shibie()">自动识别</van-button>
+                        <van-button class="right m-r-10" style="margin-top: 3px" plain type="default" size="mini"
+                            @click="toche()">选择车型</van-button>
+                    </div>
+                </div>
+
+                <div style="overflow: hidden;padding: 6px 15px 0px 15px;">
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span>机油滤清器：</span>
+                        <input class="inpucc" v-model="list.jymodel" type="text">
+                    </div>
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span>空气滤清器：</span>
+                        <input class="inpucc" v-model="list.kqmodel" type="text">
+                    </div>
+                    <div style="overflow: hidden;margin-top: 12px" class="h1">
+                        <span>空调滤清器：</span>
+                        <input class="inpucc" v-model="list.ktmodel" type="text">
+                    </div>
+                </div>
+            </div>
+            <!-- <div id="test_3">
+                <img class="img_src" :src="img_src" @mousedown="down" @touchstart.stop="down"  @touchmove.stop="moves"
+                    @mouseup="end" @touchend.stop="end" :style="{top:position.y+'px', left:position.x+'px'}">
+            </div> -->
+            <div style="height: 80px"></div>
+            <!-- <van-empty v-if="list.length < 1" description="暂无数据~" /> -->
+        </div>
+        <div class="bott">
+            <van-button type="primary" class="tijiao" @click="tijiao">提交并匹配配件</van-button>
+        </div>
+    </div>
+</body>
+<script>
+    var dx, dy
+    var screenWidth = window.screen.width
+    var screenHeight = window.screen.height
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                flags: false,
+                position: {
+                    x: 0,
+                    y: 0
+                },
+                search: '',
+                baoyan: JSON.parse(sessionStorage.getItem("baoyan")),
+                list: {},
+                active: 1,
+                tires: '',
+                dataTips: '',
+                tag1: '',
+                tag2: '',
+                tag3: '',
+                isok: false,
+                //
+                start: {
+                    x: 0,
+                    y: 0
+                },
+                move: {
+                    x: 0,
+                    y: 0
+                },
+                scaleStart: {
+                    x0: 0,
+                    y0: 0,
+                    x1: 0,
+                    y1: 0
+                },
+                scaleMove: {
+                    x0: 0,
+                    y0: 0,
+                    x1: 0,
+                    y1: 0
+                },
+                deg: 0,
+                left: 40,
+                touchTimes: 0,
+                img_src: 'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3551927214,3187658184&fm=26&gp=0.jpg',
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.namelist()
+        },
+        mounted() {
+            if (sessionStorage.getItem('isok') == null) {
+                sessionStorage.removeItem('data');
+            } else {
+                setTimeout(res => {
+                    this.list = JSON.parse(sessionStorage.getItem('data'))
+                    console.log(this.list)
+                }, 500);
+                // sessionStorage.removeItem('data');
+                sessionStorage.removeItem('isok');
+            }
+
+            document.body.style.webkitOverflowScrolling = 'none';
+            //
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+
+        },
+
+        methods: {
+            // 实现移动端拖拽
+            down(event) {
+                this.flags = true;
+                var touch;
+                if (event.touches) {
+                    touch = event.touches[0];
+                } else {
+                    touch = event;
+                }
+                console.log('鼠标点所在位置', touch.clientX, touch.clientY)
+                console.log('div左上角位置', event.target.offsetTop, event.target.offsetLeft)
+                dx = touch.clientX - event.target.offsetLeft
+                dy = touch.clientY - event.target.offsetTop
+            },
+            moves() {
+                this.touchTimes = 0;
+                let event = window.event || e;
+                if (this.flags) {
+                    var touch;
+                    if (event.touches) {
+                        touch = event.touches[0];
+                    } else {
+                        touch = event;
+                    }
+                    // 定位滑块的位置
+                    this.position.x = touch.clientX - dx;
+                    this.position.y = touch.clientY - dy;
+                    // 限制滑块超出页面
+                    // console.log('屏幕大小', screenWidth, screenHeight )
+                    if (this.position.x < 0) {
+                        // this.position.x = 0
+                    } else if (this.position.x > screenWidth - touch.target.clientWidth) {
+                        // this.position.x = screenWidth - touch.target.clientWidth
+                    }
+                    if (this.position.y < 0) {
+                        // this.position.y = 0
+                    } else if (this.position.y > screenHeight - touch.target.clientHeight) {
+                        this.position.y = screenHeight - touch.target.clientHeight
+                    }
+                    //阻止页面的滑动默认事件
+                    document.addEventListener("touchmove", function () {
+                        event.preventDefault();
+                    }, false);
+                }
+                if (event.touches.length === 2) { // 如果是2个触摸点，计算放大还是缩小
+                    // 触摸移动位置
+                    this.scaleMove = {
+                        x0: event.touches[0].pageX,
+                        y0: event.touches[0].pageY,
+                        x1: event.touches[1].pageX,
+                        y1: event.touches[1].pageY
+                    };
+                    /*
+                     * 计算触摸点差值
+                     * */
+                    // 初始2个触摸点
+                    const diffXInit = Math.abs(this.scaleStart.x0 - this.scaleStart.x1);
+                    const diffYInit = Math.abs(this.scaleStart.y0 - this.scaleStart.y1);
+                    const diffX = Math.abs(this.scaleMove.x0 - this.scaleMove.x1);
+                    const diffY = Math.abs(this.scaleMove.y0 - this.scaleMove.y1);
+                    /*
+                     * 判断是左右、还是上下滑动来放大缩小
+                     * */
+                    // 左右移动触摸
+                    if (Math.abs(this.scaleStart.x0 - this.scaleMove.x0) > Math.abs(this.scaleStart.y0 - this.scaleMove.y0)) {
+                        // 比较touch开始与移动时的差，计算出是缩小还是放大
+                        if (diffX > diffXInit) { // 放大
+                            event.touches[0].target.width += Math.abs(diffXInit - diffX);
+                            console.log('左右放大');
+                        } else { // 缩小
+                            event.touches[0].target.width -= Math.abs(diffXInit - diffX);
+                            console.log('左右缩小');
+                        }
+                    } else { // 上下移动触摸
+                        // 比较触摸开始与移动时的差，计算出是缩小还是放大
+                        if (diffY > diffYInit) { // 放大
+                            event.touches[0].target.width += Math.abs(diffYInit - diffY);
+                            console.log('上下放大');
+                        } else { // 缩小
+                            event.touches[0].target.width -= Math.abs(diffYInit - diffY);
+                            console.log('上下缩小');
+                        }
+                    }
+                    // 重置触摸位置
+                    this.scaleStart = {
+                        x0: event.touches[0].clientX,
+                        y0: event.touches[0].clientY,
+                        x1: event.touches[1].clientX,
+                        y1: event.touches[1].clientY
+                    };
+                }
+            },
+            //鼠标释放时候的函数
+            end() {
+                console.log('end')
+                this.flags = false;
+            },
+
+
+            // /////////////////////////////////
+            touchstart: function (e) {
+                let event = window.event || e;
+                let _this = this;
+                this.touchTimes++;
+                // 双击时放大50
+                let timesFun = setTimeout(function () {
+                    // 如果大于1，说明是双击图片
+                    if (_this.touchTimes > 1) {
+                        event.touches[0].target.width += 50;
+                    }
+                    // 清除定时
+                    clearInterval(timesFun);
+                    _this.touchTimes = 0;
+                }, 300);
+                // 初始多个触摸位置（进行放大缩小）
+                if (event.touches.length > 1) {
+                    this.scaleStart = {
+                        x0: event.touches[0].clientX,
+                        y0: event.touches[0].clientY,
+                        x1: event.touches[1].clientX,
+                        y1: event.touches[1].clientY
+                    };
+                } else if (event.touches.length === 1) {
+                    // 初始单个触摸位置
+                    this.start = {
+                        x: event.touches[0].clientX,
+                        y: event.touches[0].clientY
+                    };
+                }
+            },
+            touchmove: function (e) {
+
+                this.touchTimes = 0;
+                let event = window.event || e;
+                // 如果是1个触摸点，只计算上下左右移动
+                if (event.touches.length === 1) {
+                    this.move.x += event.touches[0].clientX - this.start.x;
+                    this.move.y += event.touches[0].clientY - this.start.y;
+                    // console.log(event.touches[0].clientX - this.start.x)
+                    event.touches[0].target.style.transform = `translate3d(${this.move.x}px, ${this.move.y}px, 0px) translateZ(0px)`;
+                    this.start = {
+                        x: event.touches[0].clientX,
+                        y: event.touches[0].clientY
+                    };
+                } else if (event.touches.length === 2) { // 如果是2个触摸点，计算放大还是缩小
+                    // 触摸移动位置
+                    this.scaleMove = {
+                        x0: event.touches[0].pageX,
+                        y0: event.touches[0].pageY,
+                        x1: event.touches[1].pageX,
+                        y1: event.touches[1].pageY
+                    };
+                    /*
+                     * 计算触摸点差值
+                     * */
+                    // 初始2个触摸点
+                    const diffXInit = Math.abs(this.scaleStart.x0 - this.scaleStart.x1);
+                    const diffYInit = Math.abs(this.scaleStart.y0 - this.scaleStart.y1);
+                    const diffX = Math.abs(this.scaleMove.x0 - this.scaleMove.x1);
+                    const diffY = Math.abs(this.scaleMove.y0 - this.scaleMove.y1);
+                    /*
+                     * 判断是左右、还是上下滑动来放大缩小
+                     * */
+                    // 左右移动触摸
+                    if (Math.abs(this.scaleStart.x0 - this.scaleMove.x0) > Math.abs(this.scaleStart.y0 - this.scaleMove.y0)) {
+                        // 比较touch开始与移动时的差，计算出是缩小还是放大
+                        if (diffX > diffXInit) { // 放大
+                            event.touches[0].target.width += Math.abs(diffXInit - diffX);
+                            console.log('左右放大');
+                        } else { // 缩小
+                            event.touches[0].target.width -= Math.abs(diffXInit - diffX);
+                            console.log('左右缩小');
+                        }
+                    } else { // 上下移动触摸
+                        // 比较触摸开始与移动时的差，计算出是缩小还是放大
+                        if (diffY > diffYInit) { // 放大
+                            event.touches[0].target.width += Math.abs(diffYInit - diffY);
+                            console.log('上下放大');
+                        } else { // 缩小
+                            event.touches[0].target.width -= Math.abs(diffYInit - diffY);
+                            console.log('上下缩小');
+                        }
+                    }
+                    // 重置触摸位置
+                    this.scaleStart = {
+                        x0: event.touches[0].clientX,
+                        y0: event.touches[0].clientY,
+                        x1: event.touches[1].clientX,
+                        y1: event.touches[1].clientY
+                    };
+                }
+            },
+            touchend: function (e) {
+                let event = window.event || e;
+                // 如果触摸点变为1个时（就像2个触摸点，松开了1个），重置初始触摸点
+                if (event.touches.length > 0) {
+                    this.start = {
+                        x: event.touches[0].clientX,
+                        y: event.touches[0].clientY
+                    };
+                }
+            },
+
+
+            //图片放大缩小以上
+            //翻转
+            fan() {
+                this.position.y = '-280'
+                this.deg -= 90;
+                if (this.deg >= 360) {
+                    this.deg = 0
+                }
+            },
+            zheng() {
+                this.position.y = '-280'
+                this.deg += 90;
+                if (this.deg >= 360) {
+                    this.deg = 0
+                }
+            },
+            //去选车型
+            toche() {
+                sessionStorage.setItem('data', JSON.stringify(this.list));
+                sessionStorage.setItem('isok', 'true');
+                location.href = "change_che.html";
+                // location.href = "manageDetail.html?gid=" + id + "&name=" + name + "&token=" + this.token;
+            },
+            //识别车型
+            shibie() {
+                axios.get(`${baseURL}/vehicle/diy/mall/vin/carSeries`, {
+                    params: {
+                        vinCode: this.list.vinCode
+                    },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        // this.list = res.data.data
+                        this.list.brandLogo = res.data.data.brandLogo
+                        this.list.brandName = res.data.data.brandName
+                        this.list.carName = res.data.data.carName
+                        this.list.carBrand = res.data.data.brandName
+                        this.list.jymodel = res.data.data.jymodel
+                        this.list.combineName = res.data.data.combineName
+                        this.list.carModel = res.data.data.seriesName  
+                        this.list.jymodel = res.data.data.jymodel
+                        this.list.kqmodel = res.data.data.kqmodel
+                        this.list.ktmodel = res.data.data.ktmodel
+                        this.list.seriesName = res.data.data.seriesName
+                        this.list.year = res.data.data.year
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+            namelist() {
+                axios.get(`${baseURL}/vehicle/diy/mall/user/vin`, {
+                    params: {
+                        vinCode: this.baoyan.vinCode
+                    },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+            tijiao() {
+                var parmas = {
+                    brandLogo: this.list.brandLogo ? this.list.brandLogo : '',
+                    brandName: this.list.brandName ? this.list.brandName : '',
+                    carName: this.list.carName,
+                    carNo: this.list.carNo,
+                    combineName: this.list.combineName,
+                    customerName: this.list.customerName,
+                    id: this.list.id,
+                    jymodel: this.list.jymodel,
+                    kqmodel: this.list.kqmodel,
+                    ktmodel: this.list.ktmodel,
+                    manufacturers:this.list.manufacturers?this.list.manufacturers:'',
+                    seriesName: this.list.seriesName ? this.list.seriesName : '',
+                    vin: this.list.vinCode,
+                    year: this.list.year,
+                }
+                axios.post(`${baseURL}/vehicle/diy/mall/save/match/part`, parmas)
+                    .then(res => {
+                        console.log('res=>', res);
+                        if (res.data.code = 200) {
+                            this.$toast("提交成功!");
+                            setTimeout(() => {
+                                window.history.go(-1)
+                            }, 1000);
+                        } else {
+                            this.$toast.fail(res.data.message)
+                        }
+                    })
+            },
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                    console.log("andriod");
+                }
+            },
+            back() {
+                history.go(-1)
+            },
+            quxiao() {
+                history.go(-1)
+            },
+        }
+    })
+</script>
+
+</html>

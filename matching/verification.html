@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>活动核销</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h1 {
+        text-align: center;
+        /* font-weight: bold; */
+        font-size: 21px;
+    }
+
+    .zhong {
+        /* text-align: center; */
+        padding: 20px 0;
+        position: relative;
+        margin-top: 100px;
+        padding-left: 30%;
+    }
+
+    .anniu {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        margin: auto;
+    }
+
+    .hexiao {
+        position: absolute;
+        top: 0;
+        height: 95px;
+        margin-left: 30px;
+        z-index: 99;
+    }
+
+    .an {
+        margin: auto;
+        display: block;
+        width: 100%;
+        line-height: 40px;
+        height: 40px;
+    }
+
+    .an2 {
+        width: 50%;
+        float: left;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <!-- <van-nav-bar title="车型配件匹配"  :fixed="true" :z-index="999"></van-nav-bar> -->
+        <!-- style="padding-top:86px;" -->
+        <!-- token：{{token}} -->
+        <div style="overflow: hidden;background: #fff;padding-top:40px">
+            <div class="h1">{{list.activityName}}</div>
+            <!-- {{ctoken}} -->
+            <div class="zhong">
+                <div>车牌号：<span style="font-weight: bold;">{{list.carNo}}</span></div>
+                <div style="margin-top: 20px;">手机号：{{list.phone}}</div>
+                <img class="hexiao" v-if="list.offType == 1" src="../img/hexiao.png" alt="">
+            </div>
+        </div>
+        <div class="anniu">
+            <div v-if="list.offType == 1">
+                <van-button class="an2" type="primary" @click="houhui">继续扫描</van-button>
+                <van-button class="an2" type="danger" @click="banli">办理套餐</van-button>
+            </div>
+
+            <van-button class="an" type="primary" @click="tijiao" v-else>确认核销</van-button>
+        </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                list: {
+
+                },//
+                orderNumber: '',
+                active: 1,
+                count: '',
+                token: '',
+                isok: false,
+                // ctoken:'1',
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.orderNumber = getSearchString('orderNumber', search); //结果：18
+            //获取安卓token
+
+            this.token = window.androidjs.getLocalData("getToken");
+            // this.token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNDk3IiwiZXhwIjoxNjE1OTUwMzgxfQ.MiojnOiEsPM6wvcnqiCGxNaNaZJhUi9Q5a3XkkhgpDFqIz4wk6O2ZTJ3seYPtIUCeA2b7D4-IF0TwDPagJy6nQ'
+            sessionStorage.setItem('h5token', this.token)
+            // window.setToken = this.setToken;
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            // setToken(token) {
+            //     this.ctoken = token
+            //     //params: 原生调用Vue时传值（params）给Vue
+            //     console.log("得到原生传值结果:" + token);
+            // },
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            houhui() {
+                window.androidjs.onCallbackIntent("Finish");
+            },
+            //去修改
+            banli(item) {
+                sessionStorage.setItem("banli", JSON.stringify(this.list));
+                location.href = "verification_banli.html"
+            },
+            tijiao() {
+                var data = {
+                    orderNumber: this.orderNumber
+                }
+                axios({
+                    url: `${baseURL}/vehicle/market/write/off`,
+                    method: 'post',
+                    params: { orderNumber: this.orderNumber }, // query参数
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    console.log(res)
+                    if (res.data.success == true) {
+                        this.$toast("确认核销成功!");
+                        this.namelist()
+                    } else {
+                        this.$toast.fail(res.data.message)
+                    }
+                })
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/market/user/details`, {
+                    params: {
+                        orderNumber: this.orderNumber,
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

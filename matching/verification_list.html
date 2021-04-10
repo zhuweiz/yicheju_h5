@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>活动列表</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h1 {
+        text-align: center;
+        /* font-weight: bold; */
+        font-size: 21px;
+    }
+
+    .list {
+        font-size: 14px;
+        padding: 12px 12px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .list_a {
+        overflow: hidden;
+    }
+
+    .list_b {
+        color: #666;
+        margin-top: 12px;
+        font-size: 13px;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar title="活动列表" :fixed="true" :z-index="999"></van-nav-bar>
+
+        <!-- style="padding-top:86px;" -->
+        <!-- token：{{token}} -->
+        <div style="overflow: hidden;background: #fff;padding-top:46px">
+            <van-list v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+                @load="onLoads" :offset="10">
+                <div class="list" v-for="(item,idx) in list" :key="idx">
+                    <div class="list_a">
+                        <div class="left" style="font-weight: bold">{{item.activityName}}</div>
+                        <div class="right" @click="tojiyou(item)">机油：{{item.jycount}} <span
+                                style="color: #45b97c;font-weight: bold"> ></span></div>
+                        <div class="right" style="margin-right: 25px" @click="totongji(item)">裂变：{{item.payCounts?item.payCounts:0}}<span
+                                style="color: #45b97c;font-weight: bold"> ></span></div>
+                    </div>
+                    <div class="list_b">
+                        起止时间：{{item.activityStartDate?item.activityStartDate.substr(0,11):''}} -- {{item.activityEndDate?item.activityEndDate.substr(0,11):''}}
+                    </div>
+                </div>
+            </van-list>
+            <van-empty v-if="list.length < 1" description="暂无数据~" />
+        </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                list: [],//
+                orderNumber: '',
+                active: 1,
+                count: '',
+                loading: false,
+                page: 0,
+                size: 10,
+                total: 0,
+                aid: '',
+                finished: false,
+                token: '',
+                isok: false,
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.token = window.androidjs.getLocalData("getToken");
+            // this.token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzNDgwIiwiZXhwIjoxNjE1OTczNTk2fQ.EfQM9SbnWtSrydj7hWWtbKQrp4ktI8Iyvw7TzBCuFZC3-NQNGA5bnYpi-zbiba7rYcizyOv1BzcwhhByYCSsug'
+
+            sessionStorage.setItem('h5token',this.token)
+
+            
+            // localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyNDY3IiwiZXhwIjoxNjEzNzk5MjQzfQ.yJntP379E8hY1ogKlioQWaNCxCGfkg2Fj98wP_8Q_j7x7dNNkOcdmd6__fGDdEVR7XnHW4uuK18hEu5Yez7Tzg');
+            // console.log(this.askPricePartIds)
+
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            houhui() {
+                window.androidjs.onCallbackIntent("Finish");
+            },
+            //去修改
+            totongji(item) {
+                // sessionStorage.setItem("baoyan", JSON.stringify(item));
+                location.href = "verification_tongji.html?aid=" + item.id
+            },
+            //去机油客户列表
+            tojiyou(item) {
+                location.href = "verification_jiyou.html?aid=" + item.id + '&activityName=' + item.activityName
+            },
+            onLoads() {
+                this.page++;
+                this.namelist();
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/market/getList`, {
+                    params: {
+                        page: this.page,
+                        size: this.size,
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        if (res.data.data) {
+                            // this.list = res.data.data.vinPage.content
+                            let rows = res.data.data
+                            this.loading = false;
+                            this.total = res.data.data.totalElements
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.finished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.list = this.list.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.list.length >= this.total) {
+                                this.finished = true;
+                            }
+                        } else {
+                            this.list = []
+                        }
+                        console.log(this.list)
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

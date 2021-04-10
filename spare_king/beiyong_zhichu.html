@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>备用金记录</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h1 {
+        text-align: center;
+        /* font-weight: bold; */
+        font-size: 21px;
+    }
+
+    .hed {
+        line-height: 46px;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        left: 0;
+        z-index: 99;
+        background: #fff;
+        text-align: center;
+    }
+
+    .fanhui {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 99;
+        margin-top: 12px;
+        margin-left: 10px;
+    }
+
+    .mian {
+        overflow: hidden;
+        margin: 0 10px;
+        padding: 12px 2px;
+        border-bottom: 1px solid #f5f5f5;
+        font-size: 13px;
+        line-height: 24px;
+    }
+
+    .w_55 {
+        width: 55%;
+        overflow: hidden;
+    }
+
+    .w_45 {
+        width: 45%;
+        overflow: hidden;
+    }
+
+    .heds {
+        overflow: hidden;
+        border-top: 10px solid #f5f5f5;
+    }
+
+    .zf {
+
+        width: 50px;
+        text-align: center;
+        color: #fff;
+        border-radius: 4px;
+        background: #f15b6c
+    }
+
+    .tg {
+
+        width: 50px;
+        text-align: center;
+        color: #fff;
+        border-radius: 4px;
+        background: #3ac29f
+    }
+
+    .quan {
+        background: red;
+        color: #fff;
+        padding: 2px;
+        font-size: 12px;
+        border-radius: 8px;
+        margin-right: 5px;
+
+    }
+    .imgs{
+        width: 60px;
+        height: 60px;
+        margin-right: 10px;
+    }
+    .bi{
+        font-size: 13px;
+        color: #3ac29f;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <div class="hed">
+            <van-icon @click="back" size="20" class="fanhui" name="arrow-left"></van-icon>
+            <span v-if="lbisok == 'true'">备用金支出审核</span>
+            <span v-else>
+                备用金支出 <span class="bi">(共{{total}}笔)</span>
+            </span>
+        </div>
+        <!-- <van-nav-bar title="备用支出" :fixed="true" :z-index="999"></van-nav-bar> -->
+        <div style="overflow: hidden;background: #fff;padding-top:46px">
+            <van-list v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+                @load="onLoads" :offset="10">
+                <div class="heds" v-for="(item,idx) in list" :key="idx">
+                    <div class="mian">
+                        <div class="left w_55">金额：￥{{item.amount}}</div>
+                        <div class="left w_45">
+                            <span class="quan">支</span>
+                            <span v-if="item.payType == 0">现金</span>
+                            <span v-if="item.payType == 1">支付宝</span>
+                            <span v-if="item.payType == 2">微信</span>
+                            <span v-if="item.payType == 3">银行卡</span>
+                            <span v-if="item.payType == 4">直赔到店</span>
+
+                            <span class="right" style="color: red" v-if="item.status == 0">待审核</span>
+                            <span class="right" style="color: #3ac29f" v-if="item.status == 1">已审核</span>
+                            <span class="right" style="color: #ff976a" v-if="item.status == 4">已作废</span>
+                        </div>
+                    </div>
+                    <div class="mian">
+                        <div class="left w_55">事由：{{item.groupName}}</div>
+                        <div class="left w_45">收款方：{{item.receiveSide}}</div>
+                    </div>
+                    <div class="mian">
+                        <div class="left w_55">备注：{{item.remark}}</div>
+                    </div>
+                    <div class="mian">
+                        <div style="overflow: hidden">
+                            <span class="left">凭证图片: {{item.pictureList.length == 0?'暂无图片':''}}</span>
+                            <span class="right">经手人:{{item.agentName}}</span>
+                        </div>
+                        <div style="overflow: hidden;margin-top: 5px">
+                            <img class="imgs" @click="fangda(items)" v-for="(items,indx) in item.pictureList" :key="indx" :src="items.picUrl" alt="">
+                        </div>
+                    </div>
+                    <div class="mian">
+                        <div class="left w_55">申请人：{{item.realName}}</div>
+                        <div class="left w_45" v-if="item.status == 0 && lbisok== 'true'">
+                            <div class="tg right" @click="shenhe(item,'1')">通过</div>
+                        </div>
+                    </div>
+                    <div class="mian">
+                        <div class="left w_55">提交时间：{{item.bizDate}}</div>
+                        <div class="left w_45" v-if="item.status == 1 && lbisok== 'true'">
+                            <div class="zf right" @click="shenhe(item,'4')">作废</div>
+                        </div>
+                        <div class="left w_45" v-if="item.status == 0 && lbisok== 'true'">
+                            <div class="zf right" @click="shenhe(item,'2')">拒绝</div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+
+        </van-list>
+        <van-empty v-if="list.length < 1" description="暂无数据~" />
+
+
+    </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                list: [],//
+                orderNumber: '',
+                active: 1,
+                count: '',
+                token: '',
+                id: '',
+                lbisok: false,
+                isok: false,
+                loading: false,
+                page: 0,
+                size: 20,
+                total: 0,
+                lbisok:false,
+                finished: false
+                // ctoken:'1',
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.id = getSearchString('id', search); //结果：18
+            if (getSearchString('lbisok', search)) {
+                this.lbisok = getSearchString('lbisok', search)
+                console.log('this.eid')
+            }
+            //获取安卓token
+            // window.setToken = this.setToken;
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            // setToken(token) {
+            //     this.ctoken = token
+            //     //params: 原生调用Vue时传值（params）给Vue
+            //     console.log("得到原生传值结果:" + token);
+            // },
+            back() {
+                history.go(-1)
+            },
+            fangda(items){
+                vant.ImagePreview([items.picUrl]);
+            },
+            houhui() {
+                window.androidjs.onCallbackIntent("Finish");
+            },
+            //去修改
+            banli(item) {
+                sessionStorage.setItem("banli", JSON.stringify(this.list));
+                location.href = "verification_banli.html"
+            },
+            shenhe(){
+
+            },
+            shenhe(item,status) {
+                var data = {
+                    id: item.id,
+                    status:status,
+                }
+                axios({
+                    url: `${baseURL}/vehicle/account/updateStatus`,
+                    method: 'post',
+                    params: data, // query参数
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+                }).then(res => {
+                    console.log(res)
+                    if (res.data.success == true) {
+                        this.$toast("审核成功");
+                        item.status = status
+                        // this.list = []
+                        // this.namelist()
+                    } else {
+                        this.$toast.fail(res.data.message)
+                    }
+                })
+            },
+            onLoads() {
+                this.page++;
+                this.namelist();
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/spare/out/page`, {
+                    params: {
+                        id: this.id,
+                        page: this.page,
+                        size: this.size
+                    },
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        if (res.data.data) {
+                            // this.list = res.data.data.vinPage.content
+                            let rows = res.data.data.content
+                            this.loading = false;
+                            this.total = res.data.data.totalElements
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.finished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.list = this.list.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.list.length >= this.total) {
+                                this.finished = true;
+                            }
+                        } else {
+                            this.list = []
+                        }
+
+
+
+                        this.count = res.data.data.count
+                        console.log(this.list)
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

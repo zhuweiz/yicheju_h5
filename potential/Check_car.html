@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>检车</title>
+    <!-- 公共库 -->
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/vant@2.12/lib/index.css"
+  />
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.12/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <!-- <script src="../js/http.js"></script> -->
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <!-- <link rel="stylesheet" href="./matching.css"> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    body {
+        background: #f5f5f5;
+        font-size: 14px;
+    }
+
+    .topbu {
+        position: fixed;
+        top: 46px;
+        line-height: 46px;
+        /* padding: 0 12px; */
+        padding-left: 12px;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        z-index: 99;
+    }
+
+    .tito {
+        background: #fff;
+        line-height: 46px;
+        padding-left: 12px;
+    }
+
+    .ban {
+        width: 60px;
+        text-align: center;
+    }
+
+    .lis {
+        line-height: 45px;
+        padding-left: 22px;
+        border-bottom: 1px solid #DCDCDC;
+
+    }
+
+    .gou_div {
+        width: 22px;
+        height: 22px;
+        border: 1px solid #D3D3D3;
+        background: #fff;
+        margin: auto;
+        line-height: 22px;
+        margin-top: 11px;
+        overflow: hidden;
+    }
+
+    .gou_div img {
+        width: 22px;
+        height: 22px;
+    }
+
+    .h1 {
+        line-height: 45px;
+        text-align: center;
+        background: #C0C0C0;
+        color: #fff;
+    }
+
+    .dengji {
+        width: 90%;
+        border: 1px solid #999;
+        top: 45%;
+    }
+
+    .t_bot {
+        line-height: 50px;
+        overflow: hidden;
+        margin: auto;
+    }
+
+    .t_s {
+        width: 50%;
+        text-align: center;
+    }
+
+    .boton {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 99;
+        background: #fff;
+        border-top: 1px solid #ebedf0;
+        height: 50px;
+
+    }
+
+    .van-button {
+        margin: auto;
+        margin-top: 5px;
+        display: block;
+        width: 90%;
+        line-height: 40px;
+        height: 40px;
+    }
+
+    .ms_ipt {
+        width: 80%;
+        height: 22px;
+        line-height: 22px;
+        border: none;
+    }
+
+    .miao {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .van-uploader {
+        width: 70px;
+        height: 50px;
+    }
+
+    .van-uploader__upload {
+        width: 70px;
+        height: 50px;
+        background-color: #fff;
+    }
+
+    .qian {
+        float: right;
+        padding: 3px 4px;
+        border: 1px solid red;
+        line-height: 18px;
+        font-size: 12px;
+        border-radius: 5px;
+        color: red;
+        margin-top: 9px;
+    }
+
+    .qian2 {
+        float: right;
+        padding: 3px 4px;
+        border: 1px solid #0D906E;
+        background: #0D906E;
+        line-height: 18px;
+        font-size: 12px;
+        border-radius: 5px;
+        color: #fff;
+        margin-top: 9px;
+    }
+
+    .imgs {
+        width: 62px;
+        height: 50px;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #f5f5f5;height: 100%;" v-cloak>
+        <van-nav-bar :title="list.carNo" :fixed="true" :z-index="999"></van-nav-bar>
+        <van-row class="topbu">
+            <van-col span="15">待检{{list.totalCounts}}，良好{{list.passCounts}}，不合格{{list.noPassCounts}}</van-col>
+            <van-col span="8" style="text-align: right;border-left: 1px solid #f5f5f5;">
+                <span class="right ban">不合格</span>
+                <span class="right ban">良好</span>
+            </van-col>
+        </van-row>
+        <div style="overflow: hidden;padding-top:94px">
+
+            <van-row class="tito">
+                <van-col span="14">接车检查</van-col>
+                <van-col span="10" style="text-align: right;">
+                    <span class="right ban">{{list.noPassCounts}}</span>
+                    <span class="right ban">{{list.passCounts}}</span>
+                </van-col>
+            </van-row>
+            <van-row class="lis" v-for="(item,idx) in list.checkItems" :key="idx">
+                <van-col span="15">
+                    <span>{{item.checkName}}</span>
+                    <span :class="item.hideItem?'qian2':'qian'" v-if="item.noPass" @click="toqian(item,idx)">潜在项目</span>
+                </van-col>
+                <van-col span="9" style="text-align: right;">
+                    <div class="right ban">
+                        <div class="gou_div" @click="buhege(item)">
+                            <img v-if="item.noPass" src="../img/cha.png" alt="">
+                        </div>
+                    </div>
+                    <div class="right ban">
+                        <div class="gou_div" @click="hege(item)">
+                            <img v-if="item.pass" src="../img/gou.png" alt="">
+                        </div>
+                    </div>
+                </van-col>
+                <van-col span="24" class="miao" v-if="item.noPass">
+                    <div>描述：<input class="ms_ipt" type="textarea" v-model="item.des"></div>
+                    <div>
+                        <van-uploader :after-read="onRead" :name="item">
+                            <img class="imgs" v-if="item.desUrl" :src="item.desUrl" alt="">
+                        </van-uploader>
+                    </div>
+
+                </van-col>
+            </van-row>
+
+        </div>
+        <van-popup v-model="show" class="dengji" :close-on-click-overlay="false">
+            <div class="h1">潜在项目登记</div>
+            <van-cell-group>
+                <van-field input-align="right" v-model="list.customerName" label="姓名" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field input-align="right" v-model="list.phone" label="手机" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field input-align="right" v-model="item.item" label="项目名称" />
+            </van-cell-group>
+            <van-cell-group>
+                <van-field input-align="right" v-model="item.consumeDay" label="预计消费">
+                    <template #button>
+                        <span>天后</span>
+                    </template>
+                </van-field>
+            </van-cell-group>
+            <van-cell-group>
+                <van-field @click="togaozhong(item)" placeholder="(高、中、低)" readonly input-align="right"
+                    right-icon="arrow" v-model="item.level" label="意向度">
+            </van-cell-group>
+            <van-cell-group>
+                <van-field input-align="right" v-model="item.itemPrice" label="报价">
+                    <template #button>
+                        <span>元</span>
+                    </template>
+                </van-field>
+            </van-cell-group>
+            <van-cell-group>
+                <van-field v-model="item.des" rows="3" autosize label="" type="textarea" maxlength="100"
+                    placeholder="请填写描述信息" show-word-limit />
+            </van-cell-group>
+            <div class="t_bot">
+                <div style="width: 150px;overflow: hidden;margin: auto;">
+                    <div class="left t_s" style="color: red" @click="shanchu">删除</div>
+                    <div class="left t_s" @click="tijiao(item)">提交</div>
+                </div>
+            </div>
+        </van-popup>
+        <van-popup v-model="show2" position="bottom" :style="{ height: '40%' }" />
+        <van-picker title="选择" show-toolbar :columns="columns" @confirm="onConfirm" @cancel="onCancel" />
+        </van-popup>
+        <div class="boton" v-if="!list.noChange">
+            <van-button type="primary" @click="tobaocun">保存</van-button>
+        </div>
+        <div style="height: 55px"></div>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                columns: ['高', '中', '低',],
+                show: false,
+                show2: false,
+                search: '',
+                value: '',
+                list: {},
+                item: {},
+                lh: 0,
+                daijian: 0,
+                bhg: 0,
+                idx: 0,
+                active: 1,
+                count: '',
+                isok: false,
+
+                loading: false,
+                page: 0,
+                size: 6,
+                total: 0,
+                finished: false
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.oid = getSearchString('oid', search); //结果：18
+            // localStorage.setItem("token", this.token)
+            sessionStorage.setItem("h5token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzNDk0IiwiZXhwIjoxNjE4Nzk0MjI2fQ.j4sW0hELEYm74R-vQKX2Ytrukg9IknxeUvTMdh4n3M4Uw3IJ8aM8j0HA6ns8D0tBWV5yUrvGa_1nfb5c6k3bAQ');
+
+            this.token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzNDk0IiwiZXhwIjoxNjE4Nzk0MjI2fQ.j4sW0hELEYm74R-vQKX2Ytrukg9IknxeUvTMdh4n3M4Uw3IJ8aM8j0HA6ns8D0tBWV5yUrvGa_1nfb5c6k3bAQ';
+            // console.log(this.askPricePartIds)
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            back() {
+                window.androidjs.onCallbackIntent("MainActivity");
+            },
+            tobaoyang(item) {
+                sessionStorage.setItem("baoyan", JSON.stringify(item));
+                // console.log('dianji')
+                location.href = "maintain.html"
+            },
+            async onRead(file, detail) {
+
+                var _this = this;
+                console.log(file);
+                console.log(detail)
+                console.log(file.file);
+                let files = this.dataURLtoFile(file.content, file.file.name)
+                let formdata1 = new FormData();
+                formdata1.append('file', files);
+                axios.post(`${baseURL}/vehicle/file/uploadPicture`, formdata1,
+                    { headers: { 'Authorization': sessionStorage.getItem('h5token') } }
+                )
+                    .then(res => {
+                        detail.name.desUrl = res.data.data
+                    })
+            },
+            dataURLtoFile(dataurl, filename) { // 将base64转换为file文件
+                let arr = dataurl.split(',')
+                let mime = arr[0].match(/:(.*?);/)[1]
+                let bstr = atob(arr[1])
+                let n = bstr.length
+                let u8arr = new Uint8Array(n)
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n)
+                }
+                return new File([u8arr], filename, { type: mime })
+            },
+            //勾选不合格
+            buhege(item) {
+                if (this.list.noChange == true) {
+                    return
+                }
+                if (item.noPass == false) {
+                    console.log('zoudaozhe')
+                    this.list.noPassCounts = this.list.noPassCounts + 1
+                    item.noPass = true
+                    if (item.pass == true) {
+                        this.list.passCounts = this.list.passCounts - 1
+                        item.pass = false
+                        return
+                    }
+                    this.list.totalCounts -= 1
+
+                }
+            },
+            //勾选合格
+            hege(item) {
+                if (this.list.noChange) {
+                    return
+                }
+                if (item.pass == false) {
+                    this.list.passCounts = this.list.passCounts + 1
+
+                    item.pass = true
+                    if (item.noPass == true) {
+                        this.list.noPassCounts = this.list.noPassCounts - 1
+                        item.noPass = false
+                        return
+                    }
+                    this.list.totalCounts -= 1
+                }
+            },
+            //提交潜在项目
+            tijiao(item) {
+                if (item.consumeDay == null || item.consumeDay == '') {
+                    this.$toast('请先输入预计消费天数！')
+                    return
+                }
+                if (item.level == null || item.level == '') {
+                    this.$toast('请先选择意向度！')
+                    return
+                }
+                if (item.itemPrice == null || item.itemPrice == '') {
+                    this.$toast('请先输入报价！')
+                    return
+                }
+
+                item.hideItem = true
+                this.show = false
+            },
+            //删除潜在项目
+            shanchu() {
+                this.item.consumeDay = ''
+                this.item.level = ''
+                this.item.itemPrice = ''
+                this.item.des = ''
+                this.item.hideItem = false
+                this.show = false
+            },
+            //潜在项目弹窗
+            toqian(item, idx) {
+                if (this.list.noChange) {
+                    return
+                }
+                this.idx = idx
+                this.item = item
+                this.item.item = item.checkName
+                this.show = true
+            },
+            //高中低弹窗
+            togaozhong(idx) {
+                // this.idx = idx
+                this.show2 = true
+            },
+            //选择高中低确定
+            onConfirm(value, index) {
+                console.log(this.idx)
+                this.item.level = value
+                this.show2 = false
+            },
+            onCancel() {
+                console.log('asdasd')
+                this.show2 = false
+            },
+            qiehuan(row) {
+                this.list = []
+                this.page = 0
+                this.active = row;
+                this.namelist()
+            },
+            onLoads() {
+                this.page++;
+                this.namelist();
+            },
+            //保存
+            tobaocun() {
+                var checkItems = []
+                var item = this.list.checkItems
+                for (var i in item) {
+                    if (item[i].pass == true) {
+                        item[i].item = ''
+                        item[i].itemPrice = null
+                        item[i].level = ''
+                        item[i].hideItem = false
+                        item[i].desUrl = ''
+                        item[i].des = ''
+                        item[i].consumeDay = null
+                    }
+                }
+                let data = {
+                    carNo: this.list.carNo,
+                    customerName: this.list.customerName,
+                    oid: this.list.oid,
+                    phone: this.list.phone,
+                    checkItems: item,
+                }
+                axios({
+                    url: `${baseURL}/vehicle/check/order/save`,
+                    method: 'post',
+                    data: data, // query参数
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.$toast.success('保存成功')
+                        this.namelist()
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+            namelist() {
+                axios.get(`${baseURL}/vehicle/check/order/detalis`, {
+                    params: {
+                        oid: this.oid,
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        this.list = res.data.data
+                        if (this.list.checkItems) {
+                            this.daijian = this.list.checkItems.length
+                        }
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

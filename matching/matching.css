@@ -1,0 +1,101 @@
+body, html {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.van-nav-bar__title {
+  font-size: 14px;
+}
+
+.hed_lis {
+  position: fixed;
+  top: 46px;
+  width: 100%;
+  /* position: relative; */
+  height: 40px;
+  background: #fff;
+  z-index: 99;
+  border-bottom: 1px solid #ebedf0;
+}
+
+.hhcc {
+  float: left;
+  font-size: 13px;
+  color: #646566;
+  width: 25%;
+  text-align: center;
+  line-height: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ord_lis {
+  overflow: hidden;
+  height: 100%;
+  background: #ebedf0;
+}
+
+.hua {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  margin-bottom: 5px;
+  width: 46px;
+  text-align: center;
+  margin-left: -23px;
+  height: 3px;
+  z-index: 1;
+  background-color: #0d906e;
+  border-radius: 1.5px;
+}
+
+.kehushu {
+  font-size: 12px;
+  float: right;
+  line-height: 40px;
+  color: #666;
+  margin-right: 12px;
+}
+
+.van-search {
+  position: fixed;
+  top: 86px;
+  width: 100%;
+  border-bottom: 1px solid #f5f5f5;
+  z-index: 99;
+}
+
+.shou {
+  width: 60px;
+  background-color: #0d906e;
+  border-color: #0d906e;
+}
+
+/* ------------------- */
+
+.pai_list {
+  
+  background: #fff;
+  overflow: hidden;
+  font-size: 12px;
+  border-bottom: 2px solid #f5f5f5;
+}
+
+.h1 {
+  line-height: 23px;
+}
+
+.che {
+  width: 48%;
+}
+
+.vi {
+  width: 50%;
+}
+
+.baoyang {
+  line-height: 30px;
+  height: 30px;
+  width: 100%;
+  border-top: 1px solid #f5f5f5;
+}

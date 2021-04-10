@@ -38,7 +38,11 @@
 <body>
     <!--  -->
     <div id="app" style="background: #fff;height: 100%;" v-cloak>
-        <van-nav-bar v-if="isok" title="预约管理" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <van-nav-bar v-if="isok" title="预约管理" left-arrow :fixed="true" :z-index="999" @click-left="back">
+            <template #right>
+                <van-icon @click="shuaxin" name="replay" size="18" />
+            </template>
+        </van-nav-bar>
         <van-tabs @click="qiehuan" class="toubu" @change="toqiehuan" v-model="nianyue" :style="{top:(isok?'46px':'')}">
             <van-tab :name="item.nianyue" :id='index' @click.stop="cccdd" v-for="(item,index) in list"
                 :title="index==1?item.yue +'(今天)':item.yue" :key="index">
@@ -216,6 +220,9 @@
                 this.namelist()
                 this.isshow = false;
             },
+            shuaxin() {
+                history.go(0)
+            },
             tongyi() {
                 // this.$toast
                 this.$dialog.confirm({
@@ -369,7 +376,7 @@
                 if(item.type == 1){
                     return
                 }
-                window.location.href = "quanbu_details.html?id=" + item.id + "&status=" + item.status + "&type=" + item.type + "&token=" + window.localStorage.getItem('token')
+                window.location.href = "quanbu_details.html?id=" + item.number + "&status=" + item.status + "&type=" + item.type + "&token=" + window.localStorage.getItem('token')+"&isok=" + true
             },
             namelist() {
 

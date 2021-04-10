@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>员工分红</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h1 {
+        text-align: center;
+        /* font-weight: bold; */
+        font-size: 21px;
+    }
+
+    .riqi_A {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        z-index: 9;
+        margin-top: 46px;
+    }
+
+    .heji {
+        font-size: 14px;
+        text-align: right;
+        padding-right: 15px;
+        line-height: 26px;
+    }
+    .van-row {
+        font-size: 13px;
+        text-align: center;
+        border: 1px solid #dcdfe6;
+        line-height: 30px;
+        color: #000;
+    }
+
+    .van-col {
+        border-right: 1px solid #dcdfe6;
+        overflow: hidden;
+        white-space: nowrap;
+        min-height: 30px
+    }
+
+    .van-col span {
+        display: block;
+        transform: scale(0.9);
+    }
+
+    .van-hairline--bottom::after {
+        border-bottom-width: 0;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar left-arrow @click-left="back" :title="'员工 '+item.tokerName+ ' ' +' 的分红'" :fixed="true" :z-index="999">
+        </van-nav-bar>
+        <div class="riqi_A">
+            <div class="heji">
+                    <!-- {{list}} -->
+                合计金额：<span style="color: red;font-weight: bold;">￥{{heji?heji.toFixed(2):''}}</span>
+            </div>
+            <van-row>
+                <van-col span="2">#</van-col>
+                <van-col span="5">年月</van-col>
+                <van-col span="4">客户数</van-col>
+                <van-col span="5">业绩</van-col>
+                <van-col span="4">分红比例</van-col>
+                <van-col span="4">分红金额</van-col>
+             
+            </van-row>
+        </div>
+        <div style="overflow: hidden;background: #fff;padding-top:104px">
+                <van-row style="border-top: none;font-size: 12px;color: #666;" v-for="(item,idx) in list" :key="idx">
+
+                    <van-col span="2"><span>{{idx+1}}</span></van-col>
+                    <van-col span="5" >
+                        <span>{{item.tokerName}}</span></van-col>
+                    <van-col span="4"><span>{{item.customerCounts?item.customerCounts:'0'}}</span></van-col>
+                    <van-col span="5"><span>{{item.achievement}}</span></van-col>
+                    <van-col span="4"><span>{{item.ratio}}%</span></van-col>
+                    <van-col span="4" style="border-right: none;"><span>{{item.redAmont?item.redAmont.toFixed(2):''}}</span></van-col>
+                 
+                </van-row>
+        </div>
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                list: [],//
+                item: JSON.parse(sessionStorage.getItem("yg_item")),
+                token: '',
+                heji:'',
+                gid: '',
+                isok: false,
+                // ctoken:'1',
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.endDate = getSearchString('endDate', search); //结果：18
+            this.startDate = getSearchString('startDate', search); //结果：18
+            //获取安卓token
+            // this.addDate()
+            // window.setToken = this.setToken;
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            // setToken(token) {
+            //     this.ctoken = token
+            //     //params: 原生调用Vue时传值（params）给Vue
+            //     console.log("得到原生传值结果:" + token);
+            // },
+            back() {
+                history.go(-1)
+            },
+            
+            tochazao() {
+                this.page = 0;
+                this.loading = false
+                this.finished = false
+                this.list = []
+                this.namelist();
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/org/red/user/report`, {
+                    params: {
+                        gid: this.item.gid,
+                        eId: this.item.id,
+                    },
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        if (res.data.data) {
+                            
+                            this.list = res.data.data
+                            var heji = 0
+                            for(var i in this.list){
+                                if(this.list[i].redAmont){
+                                        heji += this.list[i].redAmont
+                                }
+                            }
+                            this.heji = heji
+                        } else {
+                            this.list = []
+                        }
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

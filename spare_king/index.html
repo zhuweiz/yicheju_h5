@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>备用金</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h1 {
+        text-align: center;
+        /* font-weight: bold; */
+        font-size: 17px;
+        line-height: 26px;
+        margin-top: 15px;
+    }
+
+    .riqi_A {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        z-index: 9;
+        margin-top: 46px;
+    }
+
+    .van-row {
+        font-size: 13px;
+        text-align: center;
+        border-bottom: 1px solid #dcdfe6;
+        line-height: 35px;
+        color: #000;
+    }
+
+    .van-col {
+        overflow: hidden;
+        white-space: nowrap;
+        min-height: 35px
+    }
+
+    .dengji {
+        width: 85%;
+        border: 1px solid #999;
+        top: 45%;
+        font-weight: bold;
+        color: #666;
+    }
+
+    .z_img {
+        width: 24px;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .t_bot {
+        line-height: 50px;
+        overflow: hidden;
+        margin: auto;
+    }
+
+    .t_s {
+        width: 44%;
+        text-align: center;
+        color: #fff;
+        line-height: 30px;
+        font-size: 15px;
+        /* margin: 0 3%; */
+    }
+
+    .mian {
+        overflow: hidden;
+        padding: 12px 15px;
+        line-height: 28px;
+        font-size: 15px;
+    }
+
+    .van-hairline--bottom::after {
+        border-bottom-width: 0;
+    }
+
+    .bott {
+        width: 190px;
+        overflow: hidden;
+        margin: 15px auto;
+
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar left-arrow @click-left="back" title="备用金管理" :fixed="true" :z-index="999">
+                <template
+                #right>
+                <van-icon @click="shuaxin" name="replay" size="18" />
+            </template>
+        </van-nav-bar>
+        <div class="riqi_A">
+            <van-row>
+                <van-col span="4">员工姓名</van-col>
+                <van-col span="5">结算额</van-col>
+                <van-col span="4">支出额</van-col>
+                <van-col span="5">可用余额</van-col>
+                <van-col span="6">审核</van-col>
+
+
+            </van-row>
+        </div>
+        <div style="overflow: hidden;background: #fff;padding-top:83px">
+            <van-row style="border-top: none;font-size: 12px;color: #666;" v-for="(item,idx) in list" :key="idx">
+
+                <van-col span="4"><span>{{item.ename}}</span></van-col>
+                <van-col span="5">
+                    <span>{{item.oldAmount}}</span></van-col>
+                <van-col span="4"><span>{{item.outAmount}}</span></van-col>
+                <van-col span="5"><span>{{item.balance}}</span></van-col>
+                <van-col span="6">
+
+                    <van-icon @click="tomaking(item)" size="16" style="float: right;margin: 8px 10px 0 12px;"
+                        name="arrow"></van-icon>
+
+                    <img class="z_img right" @click="tanchuang(item)" v-if="item.type == 0" src="../img/jie.png" alt="">
+                    <img class="z_img right" @click="tanchuang(item)" v-if="item.type == 1" src="../img/huan.png" alt="">
+                    <img class="z_img right" @click="tozhi(item)" v-if="item.type == 2" src="../img/zhi.png" alt="">
+                </van-col>
+
+            </van-row>
+            <van-empty v-if="list.length < 1" description="暂无数据~" />
+        </div>
+        <van-popup closeable v-model="show" class="dengji" :close-on-click-overlay="false">
+            <div class="h1">{{form.type == 0 ?'借款申请单':'还款申请单'}}</div>
+            <div class="mian">
+                <div>申请人：<span style="color: red">{{form.ename}}</span></div>
+                <div>申请时间：<span style="color: red">{{form.lastModifiedDate}}</span></div>
+                <div>申请金额：<span style="color: red">￥{{form.amount}}</span></div>
+                <div>状态：<span style="color: red">等待审核（通过、未同意）</span></div>
+
+            </div>
+
+            <div class="bott">
+                <div class="left t_s" style="background: #0D906E" @click="tongyi(1)">同意</div>
+                <div class="right t_s" style="background: red" @click="tongyi(2)">不同意</div>
+            </div>
+    </div>
+    </van-popup>
+   
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                list: [],//
+                token: '',
+                form: {},
+                gid: '',
+                isok: false,
+                show: false,
+                // ctoken:'1',
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.gid = getSearchString('gid', search); //结果：18
+            this.token = window.androidjs.getLocalData("getToken");
+            // this.token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjE4Nzk1OTUxfQ.yPoh3Kcrp6Wg_WSMlqhIYQ_fQBZ6s8dbRCM1ji3NAmeoqUspt7dcPF2Ccp3LJfY2RcHAF1DiurtSeWbJY0Ag9w'
+            sessionStorage.setItem('h5token', this.token)
+
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            // setToken(token) {
+            //     this.ctoken = token
+            //     //params: 原生调用Vue时传值（params）给Vue
+            //     console.log("得到原生传值结果:" + token);
+            // },
+            back() {
+                history.go(-1)
+            },
+            shuaxin() {
+                history.go(0)
+            },
+            //d点击借还弹窗
+            tanchuang(item) {
+                axios.get(`${baseURL}/vehicle/spare/apply/details`, {
+                    params: {
+                        eid: item.eid,
+                    },
+                    headers: {
+                        'Authorization': this.token
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        this.form = res.data.data
+
+                        this.show = true
+
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+
+            },
+            tongyi(status){
+                var data = {
+                    "id": this.form.id,
+                    "status": status
+                }
+                axios({
+                    url: `${baseURL}/vehicle/spare/update/apply`,
+                    method: 'post', 
+                    params: data, // query参数
+                    headers: {
+                        'Authorization': this.token
+                    }
+                }).then(res => {
+                    console.log(res)
+                    if (res.data.success == true) {
+                        this.$toast("审核成功!");
+                        this.namelist()
+                        this.show = false
+                    } else {
+                        this.$toast.fail(res.data.message)
+                    }
+                })
+            },
+            tomaking(item) {
+                location.href = "my_king.html?eid=" + item.eid + '&name=' + item.ename + '&lbisok=' + true+ '&gid=' + this.gid
+            },
+            //去支出审核
+            tozhi(item){
+                location.href = "beiyong_zhichu.html?id=" + item.id + '&lbisok=' + true
+            },
+            tochazao() {
+                this.page = 0;
+                this.loading = false
+                this.finished = false
+                this.list = []
+                this.namelist();
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/spare/garage/report`, {
+                    params: {
+                        gid: this.gid,
+                    },
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        if (res.data.data) {
+
+                            this.list = res.data.data
+                            var heji = 0
+
+                        } else {
+                            this.list = []
+                        }
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

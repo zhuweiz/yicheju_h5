@@ -28,7 +28,11 @@
 <body>
     <!-- v-cloak -->
     <div id="app"  style="background: #ebedf0;height: 100%;">
-        <van-nav-bar  v-if="isok" title="全部订单" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <van-nav-bar  v-if="isok" title="全部订单" left-arrow :fixed="true" :z-index="999" @click-left="back">
+            <template #right>
+                <van-icon @click="shuaxin" name="replay" size="18" />
+            </template>
+        </van-nav-bar>
         <div class="hed_lis" :style="{top:(isok?'46px':'')}">
             <div class="hhcc" @click="qiehuan(-1)">
                 全部
@@ -181,8 +185,11 @@
             back() {
                 window.androidjs.onCallbackIntent("MainActivity");
             },
+            shuaxin() {
+                history.go(0)
+            },
             tiaozhuan(item) {
-                window.location.href = "quanbu_details.html?id=" +item.id +"&status=" +item.status+"&type=" +item.type+"&token=" +window.localStorage.getItem('token')
+                window.location.href = "quanbu_details.html?id=" +item.id +"&status=" +item.status+"&type=" +item.type+"&token=" +window.localStorage.getItem('token')+"&isok=" + false
             },
             qiehuan(row) {
                 this.active = row;

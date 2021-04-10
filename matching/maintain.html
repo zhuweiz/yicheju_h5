@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>保养库匹配</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <!-- <script src="../js/http.js"></script> -->
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+    <link rel="stylesheet" href="./maintain.css">
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .che_h2 {
+        width: 50%;
+    }
+
+    .shenqin {
+        border-top: 1px solid #f5f5f5;
+        font-size: 14px;
+        color: #666;
+        line-height: 20px;
+        padding-top: 8px;
+    }
+
+    .c_h1 {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin-bottom: 2px;
+        width: 50%;
+        height: 25px;
+        margin-left: 55px;
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar title="保养库匹配" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div class="pai_list_A biaoti">
+            <div style="overflow: hidden;padding: 6px 15px 5px 15px;">
+                <div style="overflow: hidden;" class="h1">
+                    <div class="left che">车牌：{{baoyan.carNo}}</div>
+                    <div class="left vi">vin：{{baoyan.vinCode}}</div>
+                </div>
+                <div style="overflow: hidden;" class="h1">
+                    <div class="left che">车型：{{baoyan.carBrand}}-{{baoyan.carModel}}</div>
+                    <div class="left vi">车系：{{baoyan.series}}</div>
+                </div>
+                <div style="overflow: hidden;" class="h1">
+                    <div class="left che">年份：{{baoyan.year}}</div>
+                    <div class="left vi">排量：{{baoyan.combineName}}</div>
+                </div>
+                <div style="overflow: hidden;" class="h1">
+                    厂家：{{baoyan.manufacturers}}
+                </div>
+
+            </div>
+        </div>
+        <van-search v-model="series" show-action placeholder="输入相关关键词">
+            <template #action>
+                <van-button class="shou" type="primary" size="small">搜索</van-button>
+            </template>
+        </van-search>
+        <!-- style="padding-top:86px;" -->
+        <div style="overflow: hidden;background: #fff;padding-top:210px">
+            <van-list v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+                @load="onLoads" :offset="10">
+                <div class="pai_list" v-for="(item,idx) in list" :key="idx">
+                    <div style="overflow: hidden;padding: 6px 15px 0px 15px;">
+                        <div style="overflow: hidden;" class="h1">
+                            <div class="left che">车型：</div>
+                            <div class="left vi">车系：{{item.seriesName}}</div>
+                        </div>
+                        <div style="overflow: hidden;" class="h1" >
+                            <div class="left che">年份：{{item.nian}}</div>
+                            <div class="left vi">排量：{{item.pailiang}}</div>
+                        </div>
+                        <div style="overflow: hidden;" class="h1" >
+                            <div class="left che">厂家：{{item.factory}}</div>
+                            <div class="left vi">相似度：{{item.likeSize?item.likeSize.toFixed(2)*100:''}}%</div>
+                        </div>
+                    </div>
+                    <div style="overflow: hidden;" class="baoyan">
+                        <van-button class="right m-r-10" style="margin-top: 3px" plain type="primary"
+                            @click="pipei(item)" size="mini">匹配此车型
+                        </van-button>
+
+                    </div>
+                </div>
+            </van-list>
+            <van-empty v-if="list.length < 1" description="暂无数据~" />
+        </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                userInfo: {},//个人地址信
+                baoyan: JSON.parse(sessionStorage.getItem("baoyan")),
+                search: '',
+                series: '',
+                list: [],
+                active: 1,
+                isok: false,
+                loading: false,
+                page: 0,
+                size: 6,
+                total: 0,
+                finished: false
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            console.log(JSON.parse(sessionStorage.getItem("baoyan")))
+            // this.token = getSearchString('token', search); //结果：18
+            // localStorage.setItem("token", this.token)
+            // localStorage.setItem("token", 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNjI4IiwiZXhwIjoxNjAyMTQ1MjEwfQ.qMXukQ_YG-5FJ45deYDIM5Ous53JsvzCoxYstoDfV0AOILVfx8lLBsfVGkSFTUZHDMPCHAH7NEKgdWT3Jd7qFA');
+            // console.log(this.askPricePartIds)
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                    console.log("andriod");
+                }
+            },
+            onLoads() {
+                this.page++;
+                this.namelist();
+            },
+            back() {
+                history.go(-1)
+            },
+            pipei(item) {
+                var parmas = {
+                    id: this.baoyan.id,
+                    carName: item.carName,
+                    dataTip: item.dataTip,
+                    factory: item.factory,
+                    likeSize: item.likeSize,
+                    nian: item.nian,
+                    pailiang: item.pailiang,
+                    seriesName: item.seriesName,
+                    tag_1: item.tag_1,
+                    tag_2: item.tag_2,
+                    tag_3: item.tag_3,
+                    tires: item.tires,
+                }
+                axios.post(`${baseURL}/vehicle/diy/mall/match/save`, parmas)
+                    .then(res => {
+                        console.log('res=>', res);
+                        if (res.data.code = 200) {
+                            this.$toast("提交匹配成功");
+                            setTimeout(() => {
+                                window.history.go(-1)
+                            }, 1000);
+                        } else {
+                            this.$toast.fail(res.data.message)
+                        }
+                    })
+            },
+            qiehuan(row) {
+                this.active = row;
+                this.namelist()
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/diy/mall/match`, {
+                    params: {
+                        vin: this.baoyan.vinCode, page: this.page,
+                        size: this.size,series:this.series
+                    },
+                }).then(res => {
+                    // console.log(res.data.data)
+                    if (res.data.code == 200) {
+                        if (res.data.data) {
+                            console.log(res.data)
+                            let rows = res.data.data
+                            this.loading = false;
+                            this.total = res.data.pageInfo.total
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.finished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.list = this.list.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.list.length >= this.total) {
+                                this.finished = true;
+                            }
+                        } else {
+                            this.list = []
+                        }
+                        // this.list = res.data.data
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>

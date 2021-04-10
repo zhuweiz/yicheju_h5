@@ -12,14 +12,19 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
     <script src="https://unpkg.com/better-scroll@1.0.1/dist/bscroll.min.js"></script>
-    <script src="./js/jquery.min.js"></script>
-    <script src="./js/area.js"></script>
-    <script src="./js/http.js"></script>
-    <script src="./js/api.js"></script>
-    <link rel="stylesheet" href="css/baseStyle.css" />
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="./js/area.js"></script> -->
+    <!-- <script src="./js/http.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
     <!-- <link rel="stylesheet" href="css/style.css" /> -->
-    <link rel="stylesheet" href="css/enquiry_che.css">
+    <link rel="stylesheet" href="../css/enquiry_che.css">
 </head>
+<style>
+    .van-popup {
+        width: 40%;
+    }
+</style>
 
 <body>
     <div id="app">
@@ -31,14 +36,14 @@
         <div class="boy">
             <div class="left let_a">
                 <van-index-bar class="indexBar" :sticky="false" highlight-color="#07c160">
-                   <van-index-anchor v-for="(item,index) in firstName" :key="index" :index="index"> 
-                              <span class="indexWord">{{index}}</span> 
-                    <!-- <van-cell @click="chelist(item)" v-for="(items,index) in item" :key="index"
+                    <van-index-anchor v-for="(item,index) in firstName" :key="index" :index="index">
+                        <span class="indexWord">{{index}}</span>
+                        <!-- <van-cell @click="chelist(item)" v-for="(items,index) in item" :key="index"
                         :title="items.ppinpai" /> -->
-                           <div v-for="items in item" :key="items" class="p_list" @click="chelist(items)">
-                    <img class="pinpai_img" :src="items.ppinpaiLogoUrl" alt="">
-                    <span class="pinpai_txt">{{items.ppinpai}}</span>
-                </div>
+                        <div v-for="items in item" :key="items" class="p_list" @click="chelist(items)">
+                            <img class="pinpai_img" :src="items.ppinpaiLogoUrl" alt="">
+                            <span class="pinpai_txt">{{items.ppinpai}}</span>
+                        </div>
                     </van-index-anchor>
                 </van-index-bar>
 
@@ -54,6 +59,11 @@
                 </div>
             </div>
         </div>
+        <van-popup v-model="show" position="right" :style="{ width: '70%',height: '100%' }">
+            <div v-for="items in pslist" :key="items.seriesId" class="chexin_lis" @click="fanhui(items)">
+                {{items.carName?items.carName:items.seriesName}}
+            </div>
+        </van-popup>
         <!-- <div class="shortcut shortcut-hook" style="top:100px !important;" @touchstart="touchIndex">
             <ul style="width: 100px;text-align: left;padding: 20px 0">
                 <li v-for="i in cityData" :data-anchor="i" class="item">{{i}}</li>
@@ -76,17 +86,19 @@
                     "V", "W", "X", "Y", "Z"
                 ],
                 touch: {},
+                pslist: [],
                 cityWrapper: document.querySelector('.boy'),
                 cityScroller: document.querySelector('.let_a'),
                 pinpai: [],
-                firstName:[],
+                show: false,
+                firstName: [],
                 switchActive2: null,
                 chexin: [],
-                dto: {}
+                list: {}
             }
         },
         created() {
-            this.dto = JSON.parse(sessionStorage.getItem('data'))
+            this.list = JSON.parse(sessionStorage.getItem('data'))
             this.namelist()
             // this.returnButton()
             function getSearchString(key, Url) {
@@ -103,7 +115,7 @@
                 return obj[key];
             }
             var search = window.location.search;
-            this.token = getSearchString('token', search); //结果：18
+            // this.token = getSearchString('token', search); //结果：18
             this.salesmanId = getSearchString('salesmanId', search); //结果：2
             this.salesman = getSearchString('salesman', search); //结果：2
 
@@ -122,14 +134,46 @@
                 this.namelist()
             },
             pailist(item) {
+
+                axios({
+                    methods: 'get',
+                    url: `${baseURL}/vehicle/config/brand/car/findList`,
+                    params: {
+                        brandId: item.brandId,
+                        seriesId: item.seriesId
+                    },
+                })
+                    .then(response => {
+                        if (response.data.code == 200) {
+                            this.pslist = response.data.data
+                        } else {
+                            this.$toast(response.data.message)
+                        }
+                    }).catch(error => {
+                        console.log(error)
+                    })
+                this.show = true
+
+            },
+            fanhui(item) {
                 console.log(item)
                 if (item.seriesName == '全部车型') {
-                    this.dto.carModel = item.brandName
+                    this.list.carModel = item.brandName
                 } else {
-                    this.dto.carModel = item.seriesName
+                    this.list.carModel = item.seriesName
                 }
-                this.dto.carBrand = item.brandName
-                sessionStorage.setItem('data', JSON.stringify(this.dto));
+                this.list.carBrand = item.brandName
+                this.list.brandId = item.brandId
+                this.list.brandName = item.brandName
+                this.list.carName = item.carName
+                this.list.jymodel = item.jymodel
+                this.list.kqmodel = item.kqmodel
+                this.list.ktmodel = item.ktmodel
+                this.list.seriesId = item.seriesId
+                this.list.seriesName = item.seriesName
+                this.list.manufacturers =item.manufacturers
+                this.list.year = item.year
+                sessionStorage.setItem('data', JSON.stringify(this.list));
                 sessionStorage.setItem('isok', 'true');
                 history.go(-1)
             },
@@ -154,14 +198,14 @@
                             hash.map((c, i) => {
                                 firstName[c] = [];
                                 arr.map((d, i) => {
-                                    if(c == d.pshouzimu){
+                                    if (c == d.pshouzimu) {
                                         firstName[c].push(d)
                                     }
 
                                 });
                             });
                             console.log(firstName)
-                            this.firstName =firstName
+                            this.firstName = firstName
                             // this.pinpai = response.data.data
 
                             if (response.data.data) {

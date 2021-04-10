@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>活动列表</title>
+    <!-- 公共库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css">
+    <script src="https://cdn.bootcss.com/axios/0.18.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <!-- <script src="../js/area.js"></script> -->
+    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/baseStyle.css" />
+    <script src="../js/http.js"></script>
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .h1 {
+        text-align: center;
+        /* font-weight: bold; */
+        font-size: 21px;
+    }
+
+    .list {
+        font-size: 14px;
+        padding: 12px 12px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .list_a {
+        overflow: hidden;
+        height: 25px;
+        line-height: 25px;
+    }
+
+    .list_b {
+        color: #666;
+        margin-top: 6px;
+        height: 25px;
+        line-height: 25px;
+        font-size: 13px;
+    }
+
+    .van-search {
+        position: fixed;
+        top: 65px;
+        left: 0;
+        width: 100%;
+    }
+
+    .hed {
+        position: fixed;
+        background: #fff;
+        width: 100%;
+        top: 46px;
+        z-index: 99;
+        left: 0;
+        font-size: 14px;
+        line-height: 30px;
+
+    }
+
+    .lis_an {
+        height: 24px;
+        border-radius: 5px;
+    }
+
+    .ips {
+        line-height: 30px;
+        width: 100%;
+        border: 1px solid #dcdfe6;
+    }
+
+    .iips {
+        margin: 15px auto;
+
+        width: 70%;
+
+    }
+</style>
+
+<body>
+    <!--  -->
+    <div id="app" style="background: #ffffff;height: 100%;" v-cloak>
+        <van-nav-bar :title="activityName" left-arrow :fixed="true" :z-index="999" @click-left="back"></van-nav-bar>
+        <div class="hed">
+            <span style="margin-left: 12px">客户数：<span style="color: #45b97c;font-weight: bold">{{total}}</span> 位</span>
+
+        </div>
+
+        <van-search v-model="name" show-action placeholder="请输入关键字">
+            <template #action>
+                <van-button size="small" color="#0d906e" type="primary" @click="shousuo">搜索</van-button>
+            </template>
+        </van-search>
+        <!-- style="padding-top:86px;" -->
+        <!-- token：{{token}} -->
+        <div style="overflow: hidden;background: #fff;padding-top:115px">
+            <van-list v-model="loading" :finished="finished" :immediate-check="false" finished-text="没有更多了"
+                @load="onLoads" :offset="10">
+                <div class="list" v-for="(item,idx) in list" :key="idx">
+                    <div class="list_a">
+                        <div class="left" style="font-weight: bold">车牌：{{item.carNo}}</div>
+                        <div class="left" style="margin-left: 25px">电话：{{item.phone}}</div>
+                        <van-button class="lis_an right" plain type="danger" @click="zuofei(item.id)" round>作废
+                        </van-button>
+                    </div>
+                    <div class="list_b">
+                        <div class="left" style="width: 110px">{{item.comboType}} {{item.oneSize}}L x {{item.buyCount}}次
+                        </div>
+                        <div class="left" style="margin-left: 25px">
+                            {{item.createdDate?item.createdDate.substr(5,11):''}}</div>
+                        <div class="left" style="margin-left: 25px">{{item.name}}</div>
+                        <van-button class="lis_an right" @click="xiugai(item)" plain type="primary" round>修改
+                        </van-button>
+                    </div>
+                </div>
+            </van-list>
+            <van-dialog v-model="show" title="输入管理员密码" show-cancel-button :close-on-click-overlay="false"
+                confirm-button-text="确定" :before-close="tijiaoshenhe" cancel-button-text="取消" @confirm=""
+                @cancel="quxiaotu">
+                <div class="iips"> <input class="ips" type="tel" v-model="value"></div>
+            </van-dialog>
+            <van-empty v-if="list.length < 1" description="暂无数据~" />
+        </div>
+
+    </div>
+</body>
+<script>
+    // // const baseURL = "http://47.96.248.209:8888"//测试
+    // const baseURL = "http://47.99.212.29:8888"//正式
+
+    var vue1 = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                list: [],//
+                orderNumber: '',
+                brandName: '',
+                value: '1',
+                activityName: '',
+                showKeyboard: true,
+                active: 1,
+                show: false,
+                count: '',
+                loading: false,
+                name: '',
+                page: 0,
+                size: 10,
+                id: '',
+                total: 0,
+                finished: false,
+                token: '',
+                isok: false,
+            }
+        },
+        created() {
+            this.appSource()
+            function getSearchString(key, Url) {
+                var str = Url;
+                str = str.substring(1, str.length); // 获取URL中?之后的字符（去掉第一位的问号）
+                // 以&分隔字符串，获得类似name=xiaoli这样的元素数组
+                var arr = str.split("&");
+                var obj = new Object();
+                // 将每一个数组元素以=分隔并赋给obj对象
+                for (var i = 0; i < arr.length; i++) {
+                    var tmp_arr = arr[i].split("=");
+                    obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+                }
+                return obj[key];
+            }
+            var search = window.location.search;
+            this.search = window.location.href
+            this.aid = getSearchString('aid', search); //结果：18
+            this.activityName = getSearchString('activityName', search); //结果：18
+            this.namelist()
+        },
+        mounted() {
+            window.addEventListener('pageshow', function () {
+                if (this.isPageHide) {
+                    // window.location.reload();
+                    history.go(0)
+                }
+            });
+            window.addEventListener('pagehide', function () {
+                this.isPageHide = true;
+
+            });
+            if (sessionStorage.getItem('isok') == null) {
+            } else {
+                setTimeout(res => {
+                    this.namelist()
+                }, 500);
+                sessionStorage.removeItem('isok');
+            }
+
+        },
+        methods: {
+            appSource() {
+                const u = navigator.userAgent, app = navigator.appVersion;
+                //const isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+                const isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+                if (isiOS) {
+                    this.isok = false
+
+                    console.log("ios");
+                } else {
+                    this.isok = true
+                    console.log("andriod");
+                }
+            },
+            //回退
+            back() {
+                window.history.go(-1)
+            },
+            //作废弹窗
+            zuofei(id) {
+                this.value = ''
+                this.id = id
+                this.show = true
+            },
+            //  取消弹窗
+            quxiaotu() {
+
+            },
+            //提交弹窗
+            tijiaoshenhe(action, done) {
+                console.log(action)
+                if (action == 'cancel') {
+                    done()
+                } else {
+                    if (this.value != '123456') {
+                        this.$toast.fail("密码错误!");
+                        return done(false)
+                        // this.$done(false)
+                    } else {
+                        axios.get(`${baseURL}/vehicle/market/jy/cancel`, {
+                            params: {
+                                id: this.id,
+                            },
+                            headers: {
+                                'Authorization': sessionStorage.getItem('h5token')
+                            }
+
+                        }).then(res => {
+                            if (res.data.code == 200) {
+                                this.page = 0
+                                this.list = []
+                                this.namelist();
+                                this.$toast.success("作废成功!");
+                                done()
+                            } else {
+                                this.$toast(res.data.message)
+                                return done(false)
+                            }
+                        })
+                    }
+                }
+                // console.log(done)
+                // if (this.value != '123456') {
+                //     this.$toast.fail("密码错误!");
+                //     this.$done(false)
+                // }
+            },
+            //回退安卓页面
+            houhui() {
+                window.androidjs.onCallbackIntent("Finish");
+            },
+            //去修改
+            xiugai(item) {
+                location.href = "verification_details.html?id=" + item.id
+            },
+
+            onLoads() {
+                this.page++;
+                this.namelist();
+            },
+            shousuo() {
+                this.page = 0
+                this.list = []
+                this.namelist();
+            },
+            namelist() {
+
+                axios.get(`${baseURL}/vehicle/market/jy/page`, {
+                    params: {
+                        aid: this.aid,
+                        page: this.page,
+                        size: this.size,
+                        name: this.name
+                    },
+                    headers: {
+                        'Authorization': sessionStorage.getItem('h5token')
+                    }
+
+                }).then(res => {
+                    if (res.data.code == 200) {
+                        if (res.data.data) {
+                            // this.list = res.data.data.vinPage.content
+                            let rows = res.data.data.content
+                            this.loading = false;
+                            this.total = res.data.data.totalElements
+                            if (rows == null || rows.length === 0) {
+                                // 加载结束
+                                this.finished = true;
+                                return;
+                            }
+                            // 将新数据与老数据进行合并
+                            this.list = this.list.concat(rows);
+                            //如果列表数据条数>=总条数，不再触发滚动加载
+                            if (this.list.length >= this.total) {
+                                this.finished = true;
+                            }
+                        } else {
+                            this.list = []
+                        }
+                        console.log(this.list)
+                    } else {
+                        this.$toast(res.data.message)
+                    }
+                })
+            },
+        }
+    })
+</script>
+
+</html>
